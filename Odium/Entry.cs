@@ -17,6 +17,8 @@ using Odium.UX;
 using Harmony;
 using Odium.UI;
 using Odium.ApplicationBot;
+using Odium.Patches;
+
 
 [assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
 [assembly: MelonGame("VRChat", "VRChat")]
@@ -48,6 +50,9 @@ namespace Odium
             //WE WILL REMOVE THIS SHIT WHEN WE MAKE A CONFIG FILE!!!!
             BoneESP.SetEnabled(false);
             BoxESP.SetEnabled(false);
+            
+            AwooochysPatchInitializer.Start();
+            CoroutineManager.Init();
 
             try
             {
@@ -180,6 +185,13 @@ namespace Odium
             OdiumConsole.LogGradient("OnLevelWasLoaded", $"Level -> {level}");
 
             loadIndex += 1;
+            
+        }
+        
+        public override void OnSceneWasLoaded(int buildindex, string sceneName)
+        {
+            
+            OnLoadedSceneManager.LoadedScene(buildindex, sceneName);
         }
 
         public override void OnGUI()
@@ -200,6 +212,7 @@ namespace Odium
             ApplicationBot.Bot.OnUpdate();
             BoneESP.Update();
             BoxESP.Update();
+            SwasticaOrbit.OnUpdate();
             if (Time.time - lastStatsUpdate >= STATS_UPDATE_INTERVAL)
             {
                 NameplateModifier.UpdatePlayerStats();

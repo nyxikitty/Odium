@@ -35,7 +35,7 @@ namespace Odium.IUserPage
             QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1.5f, "Spy Utils", "Spy Utils", "Opens Select User menu", false, null, bgImage);
 
             // Stalk Audio
-            new QMToggleButton(stalkPage, 2f, 2f, "Focus Voice", () =>
+            new QMToggleButton(stalkPage, 1f, 2f, "Focus Voice", () =>
             {
                 PlayerExtraMethods.focusTargetAudio(targetPlayer,true);
             }, delegate
@@ -45,7 +45,7 @@ namespace Odium.IUserPage
             
             
             //SPY AUDIO FUNCTION
-            new QMToggleButton(functionsPage, 3.5f, 1.5f, "Listen", () =>
+            new QMToggleButton(stalkPage, 2f, 2f, "Listen", () =>
             {
                 PlayerExtraMethods.setInfiniteVoiceRange(targetPlayer,true);
             }, delegate
@@ -54,7 +54,7 @@ namespace Odium.IUserPage
             }, "Hear people from whatever distance they are", false, bgImage);
             
             // Spy Camera
-            new QMToggleButton(stalkPage, 4f, 2f, "POV Camera", () =>
+            new QMToggleButton(stalkPage, 3f, 2f, "POV Camera", () =>
             {
                 SpyCamera.Toggle(targetPlayer, true);
             }, delegate
@@ -93,6 +93,14 @@ namespace Odium.IUserPage
             {
                 PickupWrapper.BringAllPickupsToPlayer(targetPlayer);
             }, "Bring all pickups in world to your position", false, TeleportIcon, bgImage);
+            
+            new QMToggleButton(pickupsPage, 3.5f, 1.5f, "Funny by Awooochy", () =>
+            {
+                SwasticaOrbit.Activated(targetPlayer,true);
+            }, delegate
+            {
+                SwasticaOrbit.Activated(targetPlayer,false);
+            }, "Does some warcrimes", false, bgImage);
 
             return appBotsPage;
         }
