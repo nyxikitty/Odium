@@ -273,16 +273,6 @@ namespace Odium.Patches
                                 }
                             }
                         }
-
-                        if (param_1.Parameters != null)
-                        {
-                            foreach (var param in param_1.Parameters)
-                            {
-                                InternalConsole.LogIntoConsole(
-                                    $"<color=#31BCF0>[MasterClient]:</color> Parameter {param.Key}: {param.Value?.ToString() ?? "null"}"
-                                );
-                            }
-                        }
                     }
                     catch (Exception ex)
                     {

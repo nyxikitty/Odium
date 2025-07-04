@@ -22,7 +22,7 @@ namespace Odium.QMPages
         public static int botIndex = 0;
         public static List<QMNestedMenu> activeBots = new List<QMNestedMenu>();
 
-        private static string get_selected_player_name()
+        public static string get_selected_player_name()
         {
             var textObject = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_SelectedUser_Local/ScrollRect/Viewport/VerticalLayoutGroup/UserProfile_Compact/PanelBG/Info/Text_Username_NonFriend");
             if (textObject == null) return "";
@@ -32,9 +32,11 @@ namespace Odium.QMPages
 
             return textComponent.text;
         }
+        
 
         public static void InitializePage(QMNestedMenu appBotsButton, Sprite bgImage, Sprite halfButtonImage)
         {
+            
             Sprite TeleportIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\TeleportIcon.png");
             Sprite GoHomeIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\GoHomeIcon.png");
             Sprite JoinMeIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\JoinMeIcon.png");

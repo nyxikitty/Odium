@@ -17,8 +17,10 @@ using Odium.UX;
 using Harmony;
 using Odium.UI;
 using Odium.ApplicationBot;
+using Odium.Patches;
 
-[assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.1", "Zuno")]
+
+[assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace Odium
@@ -38,6 +40,21 @@ namespace Odium
             OdiumConsole.LogGradient("Odium", "Starting mod initialization...", LogLevel.Info, true);
 
             ModSetup.Initialize().GetAwaiter();
+            
+            OdiumConsole.LogGradient("Odium", "Starting HTTP server", LogLevel.Info, true);
+            
+            ExternalMenu EXM = new ExternalMenu();
+            EXM.StartServer();
+            
+            OdiumConsole.LogGradient("Odium", "External Menu Ready", LogLevel.Info, true);
+            
+            //On start set those gotta be off, so user enables em.
+            //WE WILL REMOVE THIS SHIT WHEN WE MAKE A CONFIG FILE!!!!
+            BoneESP.SetEnabled(false);
+            BoxESP.SetEnabled(false);
+            
+            AwooochysPatchInitializer.Start();
+            CoroutineManager.Init();
 
             try
             {
@@ -169,6 +186,13 @@ namespace Odium
             OdiumConsole.LogGradient("OnLevelWasLoaded", $"Level -> {level}");
 
             loadIndex += 1;
+            
+        }
+        
+        public override void OnSceneWasLoaded(int buildindex, string sceneName)
+        {
+            
+            OnLoadedSceneManager.LoadedScene(buildindex, sceneName);
         }
 
         public override void OnGUI()
@@ -189,6 +213,7 @@ namespace Odium
             ApplicationBot.Bot.OnUpdate();
             BoneESP.Update();
             BoxESP.Update();
+            SwasticaOrbit.OnUpdate();
             if (Time.time - lastStatsUpdate >= STATS_UPDATE_INTERVAL)
             {
                 NameplateModifier.UpdatePlayerStats();
