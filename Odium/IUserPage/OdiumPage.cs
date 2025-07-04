@@ -15,6 +15,11 @@ namespace Odium.IUserPage
         public static float defaultVoiceGain = 0f;
         public static QMNestedMenu Initialize(QMNestedMenu qMNestedMenu1, Sprite bgImage)
         {
+            
+            //Get Targeted user
+            var targetPlayer = ApiUtils.GetIUser();
+            
+            
             Sprite TeleportIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\TeleportIcon.png");
             Sprite GoHomeIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\GoHomeIcon.png");
             Sprite JoinMeIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\JoinMeIcon.png");
@@ -30,72 +35,64 @@ namespace Odium.IUserPage
             QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1.5f, "Spy Utils", "Spy Utils", "Opens Select User menu", false, null, bgImage);
 
             // Stalk Audio
-            new QMToggleButton(stalkPage, 2f, 2f, "Stalk USpeak", () =>
+            new QMToggleButton(stalkPage, 2f, 2f, "Focus Voice", () =>
             {
-                var targetPlayer = ApiUtils.GetIUser();
-                defaultVoiceGain = targetPlayer.field_Private_VRCPlayerApi_0.GetVoiceGain();
-                targetPlayer.field_Private_VRCPlayerApi_0.SetVoiceDistanceFar(float.PositiveInfinity);
-                PlayerWrapper.Players.ForEach(player =>
-                {
-                    player.field_Private_VRCPlayerApi_0.SetVoiceGain(0);
-                });
+                PlayerExtraMethods.focusTargetAudio(targetPlayer,true);
             }, delegate
             {
-                var targetPlayer = ApiUtils.GetIUser();
-                targetPlayer.field_Private_VRCPlayerApi_0.SetVoiceDistanceFar(25f);
-                PlayerWrapper.Players.ForEach(player =>
-                {
-                    player.field_Private_VRCPlayerApi_0.SetVoiceGain(defaultVoiceGain);
-                });
-            }, "Balls", false, bgImage);
-
-            new QMToggleButton(stalkPage, 3f, 2f, "Stalk Camera", () =>
+                PlayerExtraMethods.focusTargetAudio(targetPlayer,false);
+            }, "Focus audio on a single user and mutes everyone else", false, bgImage);
+            
+            
+            //SPY AUDIO FUNCTION
+            new QMToggleButton(functionsPage, 3.5f, 1.5f, "Listen", () =>
             {
-                var targetPlayer = ApiUtils.GetIUser();
+                PlayerExtraMethods.setInfiniteVoiceRange(targetPlayer,true);
+            }, delegate
+            {
+                PlayerExtraMethods.setInfiniteVoiceRange(targetPlayer,false);
+            }, "Hear people from whatever distance they are", false, bgImage);
+            
+            // Spy Camera
+            new QMToggleButton(stalkPage, 4f, 2f, "POV Camera", () =>
+            {
                 SpyCamera.Toggle(targetPlayer, true);
             }, delegate
             {
-                var targetPlayer = ApiUtils.GetIUser();
                 SpyCamera.Toggle(targetPlayer, false);
-            }, "Balls", false, bgImage);
-
+            }, "Allows to see from the point of view of other users", false, bgImage);
+            
+            
+            // Teleport behind
             new QMSingleButton(functionsPage, 1.5f, 2f, "TP Behind", () =>
             {
-                var targetPlayer = ApiUtils.GetIUser();
-                Vector3 targetPosition = targetPlayer.transform.position;
-                Vector3 targetForward = targetPlayer.transform.forward;
-
-                float distanceBehind = 2f;
-                Vector3 behindPosition = targetPosition - (targetForward * distanceBehind);
-
-                PlayerWrapper.LocalPlayer.transform.position = behindPosition;
-
-                Vector3 directionToTarget = (targetPosition - behindPosition).normalized;
-                PlayerWrapper.LocalPlayer.transform.rotation = Quaternion.LookRotation(directionToTarget);
+                PlayerExtraMethods.teleportBehind(targetPlayer);
             }, "Teleport behind selected player facing them", false, TeleportIcon, bgImage);
 
+            
+            // Portal spam
             new QMToggleButton(functionsPage, 2.5f, 2f, "Portal Spam", () =>
             {
-                var targetPlayer = ApiUtils.GetIUser();
                 ActionWrapper.portalSpam = true;
                 ActionWrapper.portalSpamPlayer = targetPlayer;
             }, delegate
             {
                 ActionWrapper.portalSpam = false;
                 ActionWrapper.portalSpamPlayer = null;
-            }, "Balls", false, bgImage);
+            }, "Spams portals on the target, be careful your name is still shown", false, bgImage);
 
+            
+            // Teleport to
             new QMSingleButton(functionsPage, 3.5f, 2f, "TP To", () =>
             {
-                var targetPlayer = ApiUtils.GetIUser();
-                PlayerWrapper.LocalPlayer.transform.position = targetPlayer.transform.position;
+                PlayerExtraMethods.teleportTo(targetPlayer);
             }, "Teleport behind selected player facing them", false, TeleportIcon, bgImage);
 
+            //Bring Pickups
             new QMSingleButton(pickupsPage, 2.5f, 1.5f, "Bring Pickups", () =>
             {
-                var targetPlayer = ApiUtils.GetIUser();
                 PickupWrapper.BringAllPickupsToPlayer(targetPlayer);
-            }, "Teleport behind selected player facing them", false, TeleportIcon, bgImage);
+            }, "Bring all pickups in world to your position", false, TeleportIcon, bgImage);
 
             return appBotsPage;
         }
