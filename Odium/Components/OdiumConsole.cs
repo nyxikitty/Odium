@@ -29,29 +29,34 @@ namespace Odium
         #endregion
 
         private const int STD_OUTPUT_HANDLE = -11;
+        private const int STD_INPUT_HANDLE = -10;
         private const int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
+        private const int ENABLE_ECHO_INPUT = 0x0004;
+        private const int ENABLE_LINE_INPUT = 0x0002;
+        private const int ENABLE_PROCESSED_INPUT = 0x0001;
         private static bool _isInitialized = false;
 
         public static void Initialize()
         {
-            // Check if console should be allocated based on JSON preferences
-            if (!ShouldAllocateConsole())
-            {
-                return; // Don't allocate console if preference is false or file doesn't exist
-            }
-
+            if (!ShouldAllocateConsole()) return;
             if (GetConsoleWindow() != IntPtr.Zero) return;
 
             try
             {
                 AllocConsole();
-                Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
-                Console.CursorVisible = false;
+                System.Threading.Thread.Sleep(200); // Give console time to initialize
+
+                // Initialize standard streams
+                InitializeStandardStreams();
+
                 Console.Title = "Odium Console";
                 EnableVirtualTerminalProcessing();
+                EnableInputMode();
+                Console.CursorVisible = true;
 
                 DisplayBanner();
                 Log("System", "Console initialized successfully", LogLevel.Info);
+                Log("System", "Console ready for input commands", LogLevel.Info);
 
                 _isInitialized = true;
             }
@@ -61,31 +66,62 @@ namespace Odium
             }
         }
 
+        private static void InitializeStandardStreams()
+        {
+            try
+            {
+                // Initialize output
+                var stdout = Console.OpenStandardOutput();
+                var writer = new StreamWriter(stdout) { AutoFlush = true };
+                Console.SetOut(writer);
+
+                // Initialize input
+                var stdin = Console.OpenStandardInput();
+                var reader = new StreamReader(stdin);
+                Console.SetIn(reader);
+            }
+            catch (Exception ex)
+            {
+                Log("System", $"Failed to initialize streams: {ex.Message}", LogLevel.Error);
+            }
+        }
+
+        private static void EnableInputMode()
+        {
+            try
+            {
+                var inputHandle = GetStdHandle(STD_INPUT_HANDLE);
+                if (inputHandle != IntPtr.Zero && GetConsoleMode(inputHandle, out var mode))
+                {
+                    mode |= ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT;
+                    SetConsoleMode(inputHandle, mode);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("System", $"Failed to set input mode: {ex.Message}", LogLevel.Warning);
+            }
+        }
+
         private static bool ShouldAllocateConsole()
         {
             try
             {
-                // Get the Odium folder path
                 string odiumFolderPath = Components.ModSetup.GetOdiumFolderPath();
                 string prefsFilePath = Path.Combine(odiumFolderPath, "odium_prefs.json");
 
-                // Check if the preferences file exists
                 if (!File.Exists(prefsFilePath))
                 {
-                    // If file doesn't exist, create a default one with allocConsole: true
                     CreateDefaultPreferencesFile(prefsFilePath);
-                    return true; // Default to true if file doesn't exist
+                    return true;
                 }
 
-                // Read and parse the JSON file using our custom parser
                 string jsonContent = File.ReadAllText(prefsFilePath);
                 var preferences = OdiumJsonHandler.ParsePreferences(jsonContent);
-
-                return preferences?.AllocConsole ?? true; // Default to true if property is missing
+                return preferences?.AllocConsole ?? true;
             }
-            catch (Exception)
+            catch
             {
-                // If any error occurs (file reading, JSON parsing, etc.), default to true
                 return true;
             }
         }
@@ -94,18 +130,11 @@ namespace Odium
         {
             try
             {
-                var defaultPrefs = new OdiumPreferences
-                {
-                    AllocConsole = true
-                };
-
+                var defaultPrefs = new OdiumPreferences { AllocConsole = true };
                 string jsonString = OdiumJsonHandler.SerializePreferences(defaultPrefs);
                 File.WriteAllText(filePath, jsonString);
             }
-            catch (Exception)
-            {
-                // Silently fail if we can't create the default file
-            }
+            catch { }
         }
 
         public static void Log(string category, string message, LogLevel level = LogLevel.Info)
@@ -127,6 +156,22 @@ namespace Odium
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{category}] {message}");
             }
+        }
+
+        public static string Readline(string category, string message, LogLevel level = LogLevel.Info)
+        {
+            string input = string.Empty;
+            if (!_isInitialized) return input;
+            try
+            {
+                input = Console.ReadLine();
+            }
+            catch
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{category}] {message}");
+            }
+
+            return input;
         }
 
         public static void LogGradient(string category, string message, LogLevel level = LogLevel.Info, bool gradientCategory = false)
@@ -170,17 +215,10 @@ namespace Odium
                 int blue = 203 + (i * 52 / length);
                 Console.Write($"\u001b[38;2;{red};{green};{blue}m{text[i]}");
             }
-            if (addNewline)
-            {
-                Console.WriteLine("\u001b[0m");
-            }
-            else
-            {
-                Console.Write("\u001b[0m");
-            }
+            Console.Write("\u001b[0m");
+            if (addNewline) Console.WriteLine();
         }
 
-        // Tuples are amazing :3
         private static void LogWithGradient(string text, (int red, int green, int blue) startColor, (int red, int green, int blue) endColor)
         {
             int length = text.Length;
@@ -190,13 +228,7 @@ namespace Odium
                 int green = startColor.green + (i * (endColor.green - startColor.green) / length);
                 int blue = startColor.blue + (i * (endColor.blue - startColor.blue) / length);
 
-                Console.Write(string.Format("\u001b[38;2;{0};{1};{2}m{3}", new object[]
-                {
-            red,
-            green,
-            blue,
-            text[i]
-                }));
+                Console.Write($"\u001b[38;2;{red};{green};{blue}m{text[i]}");
             }
             Console.WriteLine("\u001b[0m");
         }
@@ -206,7 +238,6 @@ namespace Odium
             if (!_isInitialized) return;
 
             var timestamp = DateTime.Now.ToString("HH:mm:ss");
-
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"\n[{timestamp}] ============ EXCEPTION ============");
             Console.WriteLine($"Context: {context ?? "None"}");
@@ -217,7 +248,6 @@ namespace Odium
             Console.ResetColor();
         }
 
-        #region Private Helpers
         private static void EnableVirtualTerminalProcessing()
         {
             try
@@ -287,10 +317,8 @@ namespace Odium
             Console.ResetColor();
             LogWithGradient($"                    Odium Console - {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n", (255, 192, 203), (255, 20, 147));
         }
-        #endregion
     }
 
-    // Custom JSON handler class for Odium preferences
     public static class OdiumJsonHandler
     {
         public static OdiumPreferences ParsePreferences(string jsonString)
@@ -301,23 +329,18 @@ namespace Odium
                     return null;
 
                 var preferences = new OdiumPreferences();
-
-                // Remove whitespace and braces
                 string cleaned = jsonString.Trim().Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
                 if (cleaned.StartsWith("{"))
                     cleaned = cleaned.Substring(1);
                 if (cleaned.EndsWith("}"))
                     cleaned = cleaned.Substring(0, cleaned.Length - 1);
 
-                // Split by commas to get individual properties
                 string[] properties = cleaned.Split(',');
-
                 foreach (string property in properties)
                 {
                     if (string.IsNullOrWhiteSpace(property))
                         continue;
 
-                    // Split by colon to get key-value pair
                     string[] keyValue = property.Split(':');
                     if (keyValue.Length != 2)
                         continue;
@@ -325,7 +348,6 @@ namespace Odium
                     string key = RemoveQuotes(keyValue[0].Trim());
                     string value = RemoveQuotes(keyValue[1].Trim());
 
-                    // Parse the allocConsole property
                     if (key.Equals("allocConsole", StringComparison.OrdinalIgnoreCase))
                     {
                         if (bool.TryParse(value, out bool boolValue))
@@ -334,10 +356,9 @@ namespace Odium
                         }
                     }
                 }
-
                 return preferences;
             }
-            catch (Exception)
+            catch
             {
                 return null;
             }
@@ -354,10 +375,9 @@ namespace Odium
                 sb.AppendLine("{");
                 sb.AppendLine($"  \"allocConsole\": {preferences.AllocConsole.ToString().ToLower()}");
                 sb.AppendLine("}");
-
                 return sb.ToString();
             }
-            catch (Exception)
+            catch
             {
                 return "{}";
             }
@@ -373,57 +393,8 @@ namespace Odium
 
             return input;
         }
-
-        // Helper method to add more properties in the future
-        public static void AddProperty(Dictionary<string, object> properties, string key, object value)
-        {
-            if (!properties.ContainsKey(key))
-                properties.Add(key, value);
-            else
-                properties[key] = value;
-        }
-
-        // Helper method to serialize any simple object to JSON
-        public static string SerializeSimpleObject(Dictionary<string, object> properties)
-        {
-            try
-            {
-                var sb = new StringBuilder();
-                sb.AppendLine("{");
-
-                bool first = true;
-                foreach (var kvp in properties)
-                {
-                    if (!first)
-                        sb.AppendLine(",");
-
-                    string valueString;
-                    if (kvp.Value is bool boolVal)
-                        valueString = boolVal.ToString().ToLower();
-                    else if (kvp.Value is string stringVal)
-                        valueString = $"\"{stringVal}\"";
-                    else if (kvp.Value is int || kvp.Value is float || kvp.Value is double)
-                        valueString = kvp.Value.ToString();
-                    else
-                        valueString = $"\"{kvp.Value}\"";
-
-                    sb.Append($"  \"{kvp.Key}\": {valueString}");
-                    first = false;
-                }
-
-                sb.AppendLine();
-                sb.AppendLine("}");
-
-                return sb.ToString();
-            }
-            catch (Exception)
-            {
-                return "{}";
-            }
-        }
     }
 
-    // Helper class for preferences
     public class OdiumPreferences
     {
         public bool AllocConsole { get; set; } = true;

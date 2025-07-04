@@ -90,6 +90,18 @@ namespace Odium.Wrappers
             return vrcPlayer;
         }
 
+        public static VRC.Player GetVRCPlayerFromActorNr(int id)
+        {
+            VRC.Player vrcPlayer = GetAllPlayers().ToList().Find(plr => plr.prop_Player_1.prop_Int32_0 == id).prop_VRCPlayer_0._player;
+            return vrcPlayer;
+        }
+
+        public static VRCPlayer GetPlayerFromActorNr(int id)
+        {
+            VRCPlayer vrcPlayer = GetAllPlayers().ToList().Find(plr => plr.field_Private_VRCPlayerApi_0.playerId == id).prop_VRCPlayer_0;
+            return vrcPlayer;
+        }
+
         public static Transform GetNamePlateCanvas(VRC.Player player)
         {
             var Container = GetNamePlateContainer(player);

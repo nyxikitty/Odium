@@ -44,7 +44,7 @@ namespace Odium.Components
     {
         private static List<NameplateData> playerStats = new List<NameplateData>();
         private static HttpClient httpClient = new HttpClient();
-        private static string API_BASE = "http://api.snoofz.net:3778/api/odium/tags";
+        private static string API_BASE = "https://snoofz.net/api/odium/tags";
         private static Dictionary<string, List<string>> tagCache = new Dictionary<string, List<string>>();
 
         private static bool autoRefreshEnabled = true;
@@ -415,7 +415,7 @@ namespace Odium.Components
             {
                 using (var client = new HttpClient())
                 {
-                    client.Timeout = System.TimeSpan.FromSeconds(5); // 5 second timeout
+                    client.Timeout = System.TimeSpan.FromSeconds(5);
                     var response = await client.GetStringAsync($"{API_BASE}/get?userId={userId}");
                     var tagResponse = JsonConvert.DeserializeObject<TagResponse>(response);
 
@@ -474,17 +474,14 @@ namespace Odium.Components
         {
             try
             {
-                // Check if main stats component is still valid
                 if (statsData.statsComponents.Count > 0 && statsData.statsComponents[0] != null)
                 {
-                    // Try to access the text property to validate the component
                     var _ = statsData.statsComponents[0].text;
                     return true;
                 }
             }
             catch (System.Exception)
             {
-                // Component is invalid (likely destroyed)
                 return false;
             }
 
@@ -511,7 +508,7 @@ namespace Odium.Components
 
                     if (player.field_Private_VRCPlayerApi_0?.isMaster == true)
                     {
-                        displayComponents.Add("[<color=#FFD700>HOST</color>]");
+                        displayComponents.Add("[<color=#FFD700>👑</color>]");
                     }
 
                     if (IsFriend(player))
@@ -531,7 +528,6 @@ namespace Odium.Components
                     updatedStatsData.statsComponents[0].text = displayText;
                 }
 
-                // Update the stored data
                 var statsIndex = playerStats.FindIndex(s => s.userId == updatedStatsData.userId);
                 if (statsIndex != -1)
                 {
@@ -541,7 +537,6 @@ namespace Odium.Components
             catch (System.Exception ex)
             {
                 MelonLogger.Error($"Error updating stats for player {player.field_Private_APIUser_0.displayName}: {ex.Message}");
-                // If updating fails, clean up the stats
                 CleanupPlayerStats(player.field_Private_APIUser_0.id);
             }
         }
@@ -555,7 +550,6 @@ namespace Odium.Components
                 {
                     var statsData = playerStats[statsIndex];
 
-                    // Safely destroy tag plates
                     if (statsData.tagPlates != null)
                     {
                         foreach (var tagPlate in statsData.tagPlates)
@@ -575,9 +569,6 @@ namespace Odium.Components
                     }
 
                     playerStats.RemoveAt(statsIndex);
-
-                    // Keep the tag cache for rejoining players
-                    // Don't remove from cache to avoid unnecessary API calls
 
                     MelonLogger.Msg($"Cleaned up stats for user: {userId}");
                 }
@@ -632,9 +623,9 @@ namespace Odium.Components
             switch (platform?.ToLower())
             {
                 case "standalonewindows":
-                    return "[<color=#00BFFF>PC</color>]";
+                    return "[<color=#00BFFF>🖥️</color>]";
                 case "android":
-                    return "[<color=#32CD32>QUEST</color>]";
+                    return "[<color=#32CD32>📱</color>]";
                 case "ios":
                     return "[<color=#FF69B4>iOS</color>]";
                 default:

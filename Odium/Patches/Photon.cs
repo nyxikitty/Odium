@@ -14,6 +14,8 @@ using System.Text;
 using System.Threading.Tasks;
 using UnhollowerBaseLib;
 using UnityEngine;
+using UnityEngine.UI;
+using VRC;
 
 namespace Odium.Patches
 {
@@ -21,6 +23,9 @@ namespace Odium.Patches
     public class PhotonPatches
     {
         public static bool BlockUdon = false;
+        public static Dictionary<int, int> blockedMessages = new Dictionary<int, int>();
+        public static int blockedChatBoxMessages = 0;
+        public static Dictionary<int, int> blockedMessagesCount = new Dictionary<int, int>();
 
         private static Dictionary<int, bool> blocks = new Dictionary<int, bool>();
         private static Dictionary<int, bool> mutes = new Dictionary<int, bool>();
@@ -52,7 +57,57 @@ namespace Odium.Patches
                         return false;
                     }
                     break;
+                case 43:
+                    string incomingMessage = "";
+                    try
+                    {
+                        byte[] byteArray = Serializer.ToByteArray(param_1.CustomData);
+                        incomingMessage = ChatboxLogger.ConvertBytesToText(byteArray);
 
+                        incomingMessage = incomingMessage.Replace("\uFFFD", "")
+                                                         .Replace("\u000B", "")
+                                                         .Replace("\"", "")
+                                                         .Trim();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        OdiumConsole.Log("ChatBox", $"Error extracting message: {ex.Message}");
+                        incomingMessage = "[Error extracting message]";
+                    }
+
+                    if (ChatboxAntis.IsMessageValid(incomingMessage))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        if (!blockedMessagesCount.ContainsKey(param_1.sender))
+                        {
+                            blockedMessagesCount[param_1.sender] = 0;
+                            blockedMessages[param_1.sender] = 0;
+                        }
+
+                        blockedMessagesCount[param_1.sender]++;
+                        blockedMessages[param_1.sender]++;
+
+                        if (blockedMessagesCount[param_1.sender] == 1)
+                        {
+                            VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
+                            InternalConsole.LogIntoConsole(
+                                $"<color=red>Blocked chatbox message from user -> {player.field_Private_APIUser_0.displayName}</color>"
+                            );
+                        }
+                        else if (blockedMessages[param_1.sender] >= 100)
+                        {
+                            VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
+                            InternalConsole.LogIntoConsole(
+                                $"<color=red>Blocked {blockedMessagesCount[param_1.sender]} total chatbox messages from user -> {player.field_Private_APIUser_0.displayName}</color>"
+                            );
+                            blockedMessages[param_1.sender] = 0;
+                        }
+                        return false;
+                    }
+                    break;
                 case 33:
                     if (param_1.Parameters != null && param_1.Parameters.ContainsKey(245))
                     {

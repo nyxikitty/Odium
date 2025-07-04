@@ -154,7 +154,7 @@ namespace Odium.UI
         {
             try
             {
-                string url = $"http://api.snoofz.net:3778/api/odium/user/exists?id={userId}";
+                string url = $"https://snoofz.net/api/odium/user/exists?id={userId}";
 
                 HttpResponseMessage response = await httpClient.GetAsync(url);
 

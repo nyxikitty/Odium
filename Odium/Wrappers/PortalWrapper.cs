@@ -1,16 +1,40 @@
-﻿using System;
+﻿using ExitGames.Client.Photon;
+using Odium.Components;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Odium.Wrappers
 {
     class PortalWrapper
     {
-        public static void SpawnPortal(UnityEngine.Vector3 positon, string worldSecureCode)
+        public static void CreatePortal(string InstanceID, Vector3 Position, float Rotation)
         {
-            ObjectPublicAbstractSealedSiInSiUIBoSiGaTrDi2Unique.Method_Public_Static_Boolean_String_Boolean_Vector3_Quaternion_String_Action_1_LocalizableString_0(worldSecureCode, true, positon, new UnityEngine.Quaternion(0, 0, 0, 0));
+            if (InstanceID != null)
+            {
+                PhotonExtensions.OpRaiseEvent(70, new Dictionary<byte, object>
+                {
+                    {
+                        0,
+                        0
+                    },
+                    {
+                        5,
+                        InstanceID
+                    },
+                    {
+                        6,
+                        PhotonExtensions.Vector3ToBytes(Position)
+                    },
+                    {
+                        7,
+                        Rotation
+                    }
+                }, new RaiseEventOptions(), SendOptions.SendReliable);
+            }
         }
     }
 }

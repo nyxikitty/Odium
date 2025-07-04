@@ -25,6 +25,8 @@ namespace Odium
 {
     public class OdiumEntry : MelonMod
     {
+        public static string Version = "0.0.1";
+        public static bool wasKeyValid = false;
         public static HarmonyLib.Harmony HarmonyInstance;
         private float lastStatsUpdate = 0f;
         private const float STATS_UPDATE_INTERVAL = 1f;
@@ -64,7 +66,6 @@ namespace Odium
             BoxESP.SetBoxColor(new UnityEngine.Color(0.584f, 0.008f, 0.996f, 1.0f));
             MainThreadDispatcher.Initialize();
         }
-
         public override void OnApplicationLateStart()
         {
             ApplicationBot.Bot.Start();
@@ -195,6 +196,11 @@ namespace Odium
             }
 
             AdBlock.OnUpdate();
+        }
+
+        public override void OnLateUpdate()
+        {
+            SpyCamera.LateUpdate();
         }
     }
 }

@@ -240,9 +240,6 @@ namespace Odium.ApplicationBot
             }
         }
 
-        private static bool EmojiSpam = false;
-        private static bool WestCoastLagger = false;
-        private static string _PrefabName = "";
 
         private static void HandleBotFunctions()
         {

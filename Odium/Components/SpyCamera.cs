@@ -1,26 +1,29 @@
-﻿using System;
-using UnityEngine;
-using VRC;
+﻿using UnityEngine;
 using VRC.SDKBase;
-using MelonLoader;
 
 namespace Odium.Components
 {
-    public static class SpyCamera
+    public class SpyCamera : MonoBehaviour
     {
-        private static Camera _spyCam;
-        private static Player _targetPlayer;
-        private static bool _isActive;
-        private static MelonMod _modInstance;
-        private const float UpdateInterval = 0.0167f; // ~60fps (1/60)
+        public static SpyCamera Instance;
+        public static Camera _spyCam;
+        public static VRCPlayerApi _targetPlayer;
+        public static bool _isActive;
 
-        public static void Initialize(MelonMod modInstance)
+        public void Awake()
         {
-            _modInstance = modInstance;
-            MelonCoroutines.Start(UpdateCameraPosition());
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                DestroyImmediate(this);
+            }
         }
 
-        public static void Toggle(Player player, bool state)
+        public static void Toggle(VRCPlayerApi player, bool state)
         {
             if (state)
             {
@@ -32,14 +35,16 @@ namespace Odium.Components
             }
         }
 
-        private static void EnableSpyCamera(Player player)
+        private static void EnableSpyCamera(VRCPlayerApi player)
         {
             if (_isActive || player == null) return;
 
             _targetPlayer = player;
 
             // Create camera object
-            _spyCam = new GameObject("SpyCamera").AddComponent<Camera>();
+            GameObject camObj = new GameObject("SpyCamera");
+            camObj.transform.SetParent(_targetPlayer.GetBoneTransform(HumanBodyBones.Head));
+            _spyCam = camObj.AddComponent<Camera>();
 
             // Configure camera
             _spyCam.fieldOfView = 60f;
@@ -48,7 +53,6 @@ namespace Odium.Components
             _spyCam.depth = 1; // Make sure it renders on top
 
             _isActive = true;
-            MelonLogger.Msg("Spy camera enabled");
         }
 
         private static void DisableSpyCamera()
@@ -57,40 +61,32 @@ namespace Odium.Components
 
             if (_spyCam != null)
             {
-                UnityEngine.Object.Destroy(_spyCam.gameObject);
+                Destroy(_spyCam.gameObject);
                 _spyCam = null;
             }
 
             _targetPlayer = null;
             _isActive = false;
-            MelonLogger.Msg("Spy camera disabled");
         }
 
-        private static System.Collections.IEnumerator UpdateCameraPosition()
+        public static void LateUpdate()
         {
-            while (true)
+            if (!_isActive || _targetPlayer == null || !_targetPlayer.IsValid()) return;
+
+            // Get the player's tracking data for their head
+            VRCPlayerApi.TrackingData headData = _targetPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+
+            // Update camera position and rotation to match the player's head
+            if (_spyCam != null)
             {
-                try
-                {
-                    if (_isActive && _targetPlayer != null)
-                    {
-                        var vrcPlayer = _targetPlayer.GetComponent<VRCPlayer>();
-                        if (vrcPlayer != null)
-                        {
-                            var head = vrcPlayer.transform.Find("TrackingData/Head");
-                            if (head != null && _spyCam != null)
-                            {
-                                _spyCam.transform.SetPositionAndRotation(head.position, head.rotation);
-                            }
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    MelonLogger.Error($"Error updating spy camera: {e}");
-                }
-                yield return new WaitForSeconds(UpdateInterval); // 60fps update
+                _spyCam.transform.position = headData.position;
+                _spyCam.transform.rotation = headData.rotation;
             }
+        }
+
+        public static void OnDestroy()
+        {
+            DisableSpyCamera();
         }
     }
 }

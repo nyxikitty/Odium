@@ -52,11 +52,11 @@ namespace Odium.IUserPage
             new QMToggleButton(stalkPage, 3f, 2f, "Stalk Camera", () =>
             {
                 var targetPlayer = ApiUtils.GetIUser();
-                SpyCamera.Toggle(targetPlayer, true);
+                SpyCamera.Toggle(targetPlayer.field_Private_VRCPlayerApi_0, true);
             }, delegate
             {
                 var targetPlayer = ApiUtils.GetIUser();
-                SpyCamera.Toggle(targetPlayer, false);
+                SpyCamera.Toggle(targetPlayer.field_Private_VRCPlayerApi_0, false);
             }, "Balls", false, bgImage);
 
             new QMSingleButton(functionsPage, 1.5f, 2f, "TP Behind", () =>
@@ -83,6 +83,7 @@ namespace Odium.IUserPage
             {
                 ActionWrapper.portalSpam = false;
                 ActionWrapper.portalSpamPlayer = null;
+
             }, "Balls", false, bgImage);
 
             new QMSingleButton(functionsPage, 3.5f, 2f, "TP To", () =>

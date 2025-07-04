@@ -276,7 +276,6 @@ namespace Odium.Components
 
         private static void DrawLine(Vector3 start, Vector3 end)
         {
-            // Only draw if both points are in front of camera
             if (start.z > 0 && end.z > 0)
             {
                 GL.Vertex3(start.x, start.y, 0);
@@ -295,7 +294,6 @@ namespace Odium.Components
 
                 if (screenPos.z > 0)
                 {
-                    // Convert to GUI coordinates
                     screenPos.y = Screen.height - screenPos.y;
 
                     string text = "";

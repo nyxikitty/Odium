@@ -51,7 +51,6 @@ namespace Odium.Patches
                     }
                     else
                     {
-                        // If it's not an array, just log the object directly
                         OdiumConsole.LogGradient("PhotonEvent", __1.ToString());
                     }
                 }
