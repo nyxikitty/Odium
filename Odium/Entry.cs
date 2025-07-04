@@ -18,7 +18,7 @@ using Harmony;
 using Odium.UI;
 using Odium.ApplicationBot;
 
-[assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.1", "Zuno")]
+[assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
 [assembly: MelonGame("VRChat", "VRChat")]
 
 namespace Odium
@@ -43,6 +43,11 @@ namespace Odium
             EXM.StartServer();
             
             OdiumConsole.LogGradient("Odium", "External Menu Ready", LogLevel.Info, true);
+            
+            //On start set those gotta be off, so user enables em.
+            //WE WILL REMOVE THIS SHIT WHEN WE MAKE A CONFIG FILE!!!!
+            BoneESP.SetEnabled(false);
+            BoxESP.SetEnabled(false);
 
             try
             {
