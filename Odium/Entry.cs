@@ -37,8 +37,12 @@ namespace Odium
 
             ModSetup.Initialize().GetAwaiter();
             
+            OdiumConsole.LogGradient("Odium", "Starting HTTP server", LogLevel.Info, true);
+            
             ExternalMenu EXM = new ExternalMenu();
             EXM.StartServer();
+            
+            OdiumConsole.LogGradient("Odium", "External Menu Ready", LogLevel.Info, true);
 
             try
             {
