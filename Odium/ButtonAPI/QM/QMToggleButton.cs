@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public class QMToggleButton : QMButtonBase
     {

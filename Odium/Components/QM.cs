@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using VampClient.Api;
+using Odium.ButtonAPI.QM;
 using VRC.Localization;
 using VRC.UI.Elements;
 using TMPro;

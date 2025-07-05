@@ -86,7 +86,7 @@ namespace Odium.Wrappers
             {
                 if (pickup != null && pickup.gameObject != null)
                 {
-                    pickup.gameObject.SetActive(false);
+                    pickup.enabled = false;
                 }
             }
         }
@@ -97,7 +97,19 @@ namespace Odium.Wrappers
             {
                 if (pickup != null && pickup.gameObject != null)
                 {
-                    pickup.gameObject.SetActive(true);
+                    pickup.enabled = false;
+                }
+            }
+        }
+
+        public static void RespawnAllPickups()
+        {
+            foreach (var pickup in GetVRCPickups())
+            {
+                if (pickup != null && pickup.gameObject != null)
+                {
+                    Networking.SetOwner(Networking.LocalPlayer, pickup.gameObject);
+                    pickup.transform.position = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
                 }
             }
         }

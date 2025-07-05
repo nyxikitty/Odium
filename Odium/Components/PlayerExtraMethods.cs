@@ -3,8 +3,8 @@ using Odium.QMPages;
 using Odium.Wrappers;
 using static Odium.OdiumConsole;
 using Console = Il2CppSystem.Console;
-using VampClient.Api;
-using static VampClient.Api.ApiUtils;
+using Odium.ButtonAPI.QM;
+using static Odium.ButtonAPI.QM.ApiUtils;
 
 using UnityEngine;
 using VRC;
@@ -31,7 +31,7 @@ namespace Odium.Components
             
             try
             {
-                if (!state)
+                if (state)
                 {
                     Log("SetInfiniteVoiceRange: ", "You are no longer listening to  " + targetedPlayerName, LogLevel.Info);
                     Console.WriteLine("SetInfiniteVoiceRange: " + "You are no longer listening to  " + targetedPlayerName);

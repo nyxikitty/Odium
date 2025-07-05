@@ -12,7 +12,7 @@ using VRC.UI.Core.Styles;
 using VRC.UI.Elements;
 using VRC.UI.Elements.Controls;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public class QMMenuPage : QMMenuBase
     {

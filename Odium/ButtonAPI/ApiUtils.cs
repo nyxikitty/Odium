@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.UI.Elements;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public static class ApiUtils
     {

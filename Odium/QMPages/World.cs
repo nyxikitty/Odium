@@ -1,11 +1,12 @@
-﻿using Odium.Wrappers;
+﻿using Odium.Components;
+using Odium.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using VampClient.Api;
+using Odium.ButtonAPI.QM;
 
 namespace Odium.QMPages
 {
@@ -14,7 +15,10 @@ namespace Odium.QMPages
         public static QMToggleButton hidePickupsToggle = null;
         public static void InitializePage(QMNestedMenu worldButton, Sprite buttonImage)
         {
-            QMToggleButton qMToggleButton = new QMToggleButton(worldButton, 1, 0, "Drone Swarm", () =>
+            Sprite PickupsTabImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\PickupsIcon.png");
+            QMNestedMenu pickupsButton = new QMNestedMenu(worldButton, 1f, 3f, "Pickups", "Pickups", "Opens Select User menu", false, null, buttonImage);
+
+            new QMToggleButton(worldButton, 1, 0, "Drone Swarm", () =>
             {
                 DroneSwarmWrapper.isSwarmActive = true;
                 DroneSwarmWrapper.ChangeSwarmTarget(PlayerWrapper.LocalPlayer.gameObject);
@@ -23,22 +27,27 @@ namespace Odium.QMPages
                 DroneSwarmWrapper.isSwarmActive = false;
             }, "Swarms your player with every available drone in the instance", false, buttonImage);
 
-            QMSingleButton dropDrones = new QMSingleButton(worldButton, 2, 0, "Drop Drones", () =>
+            new QMSingleButton(worldButton, 2, 0, "Drop Drones", () =>
             {
                 PickupWrapper.DropDronePickups();
             }, "Drop all drones in the instance", false, null, buttonImage);
 
-            QMSingleButton drop = new QMSingleButton(worldButton, 3, 0, "Drop Pickups", () =>
+            new QMSingleButton(pickupsButton, 1, 0, "Drop Pickups", () =>
             {
                 PickupWrapper.DropAllPickups();
             }, "Drop all pickups in the instance", false, null, buttonImage);
 
-            QMSingleButton bring = new QMSingleButton(worldButton, 4, 0, "Bring Pickups", () =>
+            new QMSingleButton(pickupsButton, 2, 0, "Bring Pickups", () =>
             {
                 PickupWrapper.BringAllPickupsToPlayer(PlayerWrapper.LocalPlayer);
             }, "Brings all pickups in the instance", false, null, buttonImage);
 
-            hidePickupsToggle = new QMToggleButton(worldButton, 1, 1, "Hide Pickups",
+            new QMSingleButton(pickupsButton, 3, 0, "Respawn Pickups", () =>
+            {
+                PickupWrapper.RespawnAllPickups();
+            }, "Brings all pickups in the instance", false, null, buttonImage);
+
+            hidePickupsToggle = new QMToggleButton(pickupsButton, 1, 3, "Hide Pickups",
             () => {
                 PickupWrapper.HideAllPickups();
                 hidePickupsToggle.SetButtonText("Show Pickups");

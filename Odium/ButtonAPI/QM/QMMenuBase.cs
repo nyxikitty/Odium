@@ -2,7 +2,7 @@
 using UnityEngine;
 using VRC.UI.Elements;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public class QMMenuBase
     {

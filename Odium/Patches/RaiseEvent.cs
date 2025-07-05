@@ -1,5 +1,6 @@
 ﻿using ExitGames.Client.Photon;
 using HarmonyLib;
+using Odium.ApplicationBot;
 using Odium.UX;
 using Odium.Wrappers;
 using Photon.Pun;
@@ -22,7 +23,7 @@ namespace Odium.Patches
         [HarmonyPatch("Method_Public_Virtual_New_Boolean_Byte_Object_RaiseEventOptions_SendOptions_0")]
         static bool PrefixSendEvent(byte __0, Il2CppSystem.Object __1, RaiseEventOptions __2, SendOptions __3)
         {
-            if (__0 == 12 && ActionWrapper.serialize)
+            if (__0 == 12 && ActionWrapper.serialize || Bot.movementMimic)
             {
                 return false;
             }

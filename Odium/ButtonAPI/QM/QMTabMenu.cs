@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System;
 using VRC.Localization;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public class QMTabMenu : QMMenuBase
     {

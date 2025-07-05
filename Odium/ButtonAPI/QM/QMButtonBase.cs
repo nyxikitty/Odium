@@ -2,7 +2,7 @@
 using UnityEngine.Windows;
 using VRC.Localization;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public class QMButtonBase
     {

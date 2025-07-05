@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public class QMSingleButton : QMButtonBase
     {

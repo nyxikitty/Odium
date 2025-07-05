@@ -81,7 +81,7 @@ namespace Odium.ApplicationBot
                         OdiumConsole.Log("OdiumBot", $"Movement mimic called for actor -> {movementMimicActorNr} ({UserID})");
                     if (!movementMimic) {
                         movementMimic = true;
-                        movementMimicActorNr = PlayerWrapper.GetLocalPlayerAPIUser(UserID).playerId;
+                        movementMimicActorNr = PlayerWrapper.GetVRCPlayerFromId(UserID).prop_Player_0.prop_Int32_0;
                         OdiumConsole.Log("OdiumBot", $"Movement mimic enabled for actor -> {movementMimicActorNr} ({UserID})");
                     } else {
                         movementMimicActorNr = 0;

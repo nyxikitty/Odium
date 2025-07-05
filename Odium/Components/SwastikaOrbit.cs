@@ -7,7 +7,7 @@ using VRC;
 using VRC.SDKBase;
 using Odium.Components;
 using Odium.QMPages;
-using static VampClient.Api.ApiUtils;
+using static Odium.ButtonAPI.QM.ApiUtils;
 
 namespace Odium.Components
 {

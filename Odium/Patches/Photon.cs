@@ -38,7 +38,7 @@ namespace Odium.Patches
             switch (eventCode)
             {
                 case 12:
-                    if (Bot.movementMimic && Bot.movementMimicActorNr != 0 && Bot.movementMimicActorNr == param_1.sender)
+                    if (Bot.movementMimic && Bot.movementMimicActorNr == param_1.sender)
                     {
                         PhotonExtensions.OpRaiseEvent(12, param_1.customData, new RaiseEventOptions
                         {

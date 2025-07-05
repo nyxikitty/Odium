@@ -1,4 +1,4 @@
-﻿namespace VampClient.Api
+﻿namespace Odium.ButtonAPI.QM
 {
     public enum DefaultVRCMenu
     {

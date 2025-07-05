@@ -8,7 +8,7 @@ using VRC.UI.Elements;
 
 using MainMenuContent = VRC.UI.Pages.QM.Dashboard;
 
-namespace VampClient.Api
+namespace Odium.ButtonAPI.QM
 {
     public class QMNestedMenu : QMMenuBase
     {

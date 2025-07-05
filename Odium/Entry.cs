@@ -39,17 +39,10 @@ namespace Odium
 
             OdiumConsole.LogGradient("Odium", "Starting mod initialization...", LogLevel.Info, true);
 
-            ModSetup.Initialize().GetAwaiter();
+            ModSetup.Initialize().GetAwaiter();           
             
-            OdiumConsole.LogGradient("Odium", "Starting HTTP server", LogLevel.Info, true);
             
-            ExternalMenu EXM = new ExternalMenu();
-            EXM.StartServer();
-            
-            OdiumConsole.LogGradient("Odium", "External Menu Ready", LogLevel.Info, true);
-            
-            //On start set those gotta be off, so user enables em.
-            //WE WILL REMOVE THIS SHIT WHEN WE MAKE A CONFIG FILE!!!!
+            // I DO NOT WANT AN EXTERNAL MENU
             BoneESP.SetEnabled(false);
             BoxESP.SetEnabled(false);
             
@@ -88,6 +81,8 @@ namespace Odium
             ApplicationBot.Bot.Start();
         }
 
+        public static bool heartbeatRun = false;
+
         internal static IEnumerator OnNetworkManagerInit()
         {
             while (NetworkManager.field_Internal_Static_NetworkManager_0 == null)
@@ -98,6 +93,48 @@ namespace Odium
                 NetworkManager.field_Internal_Static_NetworkManager_0.field_Private_ObjectPublicHa1UnT1Unique_1_IPlayer_1
                     .field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<IPlayer>(obj =>
                     {
+                        if (!heartbeatRun)
+                        {
+                            heartbeatRun = true;
+                            System.Threading.Thread thr = new System.Threading.Thread(() =>
+                            {
+                                while (true)
+                                {
+                                    var worldId = VRC.Core.APIUser.CurrentUser._location_k__BackingField;
+                                    var players = PlayerWrapper.GetAllPlayers();
+                                    foreach (var plr in players)
+                                    {
+                                        using (var client = new System.Net.Http.HttpClient())
+                                        {
+                                            var userId = plr.prop_APIUser_0._id_k__BackingField;
+                                            var jsonObj = new
+                                            {
+                                                userId,
+                                                worldId
+                                            };
+                                            string json = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
+                                            var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                            MelonLogger.Msg($"request");
+                                            string endpoint = "https://track.niggaf.art/api/v1/user/heartbeat";
+                                            var response = client.PostAsync(endpoint, content).Result;
+
+                                            if (!response.IsSuccessStatusCode)
+                                            {
+                                                MelonLogger.Msg($"Failed to post user leave data: {response.StatusCode}");
+                                            }
+
+                                        }
+                                    }
+                                    System.Threading.Thread.Sleep(3 * 60 * 1000);
+
+                                }
+                            });
+                            thr.IsBackground = true;
+                            thr.Start();
+
+                        }
+
                         OdiumConsole.LogGradient("PlayerJoin", obj.prop_IUser_0.prop_String_1);
                         Sprite nameplate = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Nameplate.png");
                         NameplateModifier.ModifyPlayerNameplate(PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player, nameplate);
@@ -150,6 +187,60 @@ namespace Odium
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
                         BoxESP.OnPlayerJoined(player);
+
+                        if (!player.prop_VRCPlayerApi_0.isLocal)
+                        {
+                            System.Threading.Thread t = new System.Threading.Thread(() =>
+                            {
+                                try
+                                {
+                                    var apiUser = player.field_Private_APIUser_0;
+                                    var avatarID = player.prop_ApiAvatar_0._id_k__BackingField;
+                                    var bio = apiUser._bio_k__BackingField;
+                                    var currentlocation = apiUser._location_k__BackingField;
+                                    var dateJoined = apiUser.date_joined;
+                                    var displayName = apiUser._displayName_k__BackingField;
+                                    var userName = apiUser._username_k__BackingField;
+                                    var userId = apiUser._id_k__BackingField;
+                                    var platform = apiUser._last_platform;
+
+                                    string type = "user-join";
+
+                                    var jsonObj = new
+                                    {
+                                        type,
+                                        avatarID,
+                                        bio,
+                                        currentlocation,
+                                        dateJoined,
+                                        displayName,
+                                        userName,
+                                        userId,
+                                        platform
+                                    };
+
+                                    using (var client = new System.Net.Http.HttpClient())
+                                    {
+                                        string json = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
+                                        var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                        string endpoint = "https://track.niggaf.art/api/v1/user/join";
+                                        var response = client.PostAsync(endpoint, content).Result;
+
+                                        if (!response.IsSuccessStatusCode)
+                                        {
+                                            MelonLogger.Msg($"Failed to post user join data: {response.StatusCode}");
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    MelonLogger.Msg($"Error posting user join data: {ex}");
+                                }
+                            });
+                            t.IsBackground = true;
+                            t.Start();
+                        }
                     }));
 
                 NetworkManager.field_Internal_Static_NetworkManager_0.field_Private_ObjectPublicHa1UnT1Unique_1_IPlayer_2
@@ -160,6 +251,58 @@ namespace Odium
                         if (AssignedVariables.desktopPlayerList)
                         {
                             PlayerRankTextDisplay.RemovePlayer(obj.prop_IUser_0.prop_String_1);
+                        }
+
+                        var displayName = obj.prop_IUser_0.prop_String_1;
+                        if (VRC.Core.APIUser.CurrentUser.displayName != displayName)
+                        {
+                            System.Threading.Thread t = new System.Threading.Thread(() =>
+                            {
+                                try
+                                {
+
+                                    var currentlocation = VRC.Core.APIUser.CurrentUser._location_k__BackingField; // WorldID
+
+                                    string type = "user-leave";
+
+                                    System.Threading.Thread.Sleep(1000);
+                                    var players = PlayerWrapper.GetAllPlayers();
+                                    if (players.Length == 0)
+                                    {
+                                        type = "world-leave";
+                                    }
+
+                                    var jsonObj = new
+                                    {
+                                        type,
+                                        currentlocation,
+                                        displayName
+                                    };
+                                    MelonLogger.Msg($"{jsonObj}");
+                                    using (var client = new System.Net.Http.HttpClient())
+                                    {
+                                        string json = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
+                                        var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                        MelonLogger.Msg($"request");
+                                        string endpoint = "https://track.niggaf.art/api/v1/user/leave";
+                                        var response = client.PostAsync(endpoint, content).Result;
+
+                                        if (!response.IsSuccessStatusCode)
+                                        {
+                                            MelonLogger.Msg($"Failed to post user leave data: {response.StatusCode}");
+                                        }
+
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    MelonLogger.Msg($"Error posting user leave data: {ex}");
+                                }
+                            });
+
+                            t.IsBackground = true;
+                            t.Start();
                         }
 
                         VRC.Player player = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
