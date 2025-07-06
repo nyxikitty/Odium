@@ -11,7 +11,7 @@ namespace Odium.AwooochysResourceManagement
         private const string ClientDirectory = "Odium";
 
         
-        private const string ResourceBaseUrl = "https://nigga.rest/where/DownloadableResources/";
+        private const string ResourceBaseUrl = "https://nigga.rest/DeepOdium/";
         
         // File structure definition
         private static readonly (string FileName, string TargetDirectory)[] RequiredResources = 

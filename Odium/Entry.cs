@@ -41,8 +41,7 @@ namespace Odium
 
             ModSetup.Initialize().GetAwaiter();           
             
-            
-            // I DO NOT WANT AN EXTERNAL MENU
+
             BoneESP.SetEnabled(false);
             BoxESP.SetEnabled(false);
             
@@ -332,9 +331,10 @@ namespace Odium
             
         }
         
+        
+        //This will be used for enabling world specific world cheats or patching worlds functions, very useful.
         public override void OnSceneWasLoaded(int buildindex, string sceneName)
         {
-            
             OnLoadedSceneManager.LoadedScene(buildindex, sceneName);
         }
 
@@ -357,6 +357,14 @@ namespace Odium
             BoneESP.Update();
             BoxESP.Update();
             SwasticaOrbit.OnUpdate();
+            Jetpack.Update();
+            SpinBot.Update();
+            
+            //Incomming functions
+            
+            //SeatOnHead.Update();
+            //RayCastTP.Update();
+            
             if (Time.time - lastStatsUpdate >= STATS_UPDATE_INTERVAL)
             {
                 NameplateModifier.UpdatePlayerStats();

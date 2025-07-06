@@ -61,7 +61,7 @@ namespace Odium.Components
             
             try
             {
-                if (!state)
+                if (state)
                 {
                     defaultVoiceGain = targetPlayer.field_Private_VRCPlayerApi_0.GetVoiceGain();
                     targetPlayer.field_Private_VRCPlayerApi_0.SetVoiceDistanceFar(float.PositiveInfinity);

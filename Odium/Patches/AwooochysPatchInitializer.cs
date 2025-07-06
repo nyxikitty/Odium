@@ -36,17 +36,6 @@ namespace Odium.Patches
             }
             
             
-            try
-            {
-                instance.Patch(typeof(VRC_EventDispatcherRFC).GetMethod("Method_Public_Boolean_Player_VrcEvent_VrcBroadcastType_0"), new HarmonyMethod(typeof(AwooochysPatchInitializer).GetMethod("RPCPatch", BindingFlags.Static | BindingFlags.NonPublic)), null, null, null, null);
-                System.Console.WriteLine("Hook" + "RPC IS NOW VISIBLE");
-                pass++;
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine(ModuleName + "VRC_EventDispatcherRFC.RPC:" + ex.Message);
-                fail++;
-            }
             
             try
             {

@@ -65,7 +65,7 @@ namespace Odium.IUserPage
             {
                 var targetPlayer = ApiUtils.GetIUser();
                 SpyCamera.Toggle(targetPlayer.field_Private_VRCPlayerApi_0, false);
-            }, "Balls", false, bgImage);
+            }, "Allows to see from the point of view of other users", false, bgImage);
 
             new QMSingleButton(functionsPage, 1.5f, 1f, "TP Behind", () =>
             {
@@ -84,7 +84,7 @@ namespace Odium.IUserPage
             {
                 ActionWrapper.portalSpam = false;
                 ActionWrapper.portalSpamPlayer = null;
-            }, "Balls", false, bgImage);
+            }, "Spams portals on the target, be careful your name is still shown", false, bgImage);
 
             new QMSingleButton(functionsPage, 3.5f, 1f, "TP To", () =>
             {
@@ -96,13 +96,13 @@ namespace Odium.IUserPage
             {
                 var targetPlayer = ApiUtils.GetIUser();
                 Clipboard.SetText(targetPlayer.field_Private_APIUser_0.id.ToString());
-            }, "Teleport behind selected player facing them", false, InfoIcon, bgImage);
+            }, "Copy the id of the avatar the selected user is wearing", false, InfoIcon, bgImage);
 
             new QMSingleButton(functionsPage, 2.5f, 2f, "Copy Avatar ID", () =>
             {
                 var targetPlayer = ApiUtils.GetIUser();
                 Clipboard.SetText(targetPlayer.prop_ApiAvatar_0.id.ToString());
-            }, "Teleport behind selected player facing them", false, InfoIcon, bgImage);
+            }, "Copies to clipboard the selected user name", false, InfoIcon, bgImage);
 
             new QMSingleButton(functionsPage, 3.5f, 2f, "Copy Display Name", () =>
             {
@@ -125,7 +125,7 @@ namespace Odium.IUserPage
             {
                 var targetPlayer = ApiUtils.GetIUser();
                 SwasticaOrbit.Activated(targetPlayer,false);
-            }, "Does some warcrimes", false, bgImage);
+            }, "Creates a Swastika with pickups and places it on top of the selected user.", false, bgImage);
 
             new QMToggleButton(pickupsPage, 3.5f, 1.5f, "Drone Swarm", () =>
             {

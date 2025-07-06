@@ -17,20 +17,38 @@ namespace Odium.QMPages
             Sprite PlusIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\PlusIcon.png");
             Sprite MinusIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\MinusIcon.png");
 
-            QMToggleButton qMToggleButton = new QMToggleButton(movementButton, 2.5f, 0, "Flight", () =>
+            QMToggleButton qMToggleButton = new QMToggleButton(movementButton, 2.5f, 1, "Flight", () =>
             {
                 FlyComponent.FlyEnabled = true;
             }, delegate
             {
                 FlyComponent.FlyEnabled = false;
             }, "Toggle Flight Mode", false, buttonImage);
+            
+            
+            QMToggleButton qMToggleButton2 = new QMToggleButton(movementButton, 1f, 0, "Jetpack", () =>
+            {
+                Jetpack.Activate(true);
+            }, delegate
+            {
+                Jetpack.Activate(false);
+            }, "Allows you to fly", false, buttonImage);
+            
+            QMToggleButton qMToggleButton3 = new QMToggleButton(movementButton, 2f, 0, "SpinBot", () =>
+            {
+                SpinBot.Activate(true);
+            }, delegate
+            {
+                SpinBot.Activate(false);
+            }, "HvH mode", false, buttonImage);
+            
 
-            QMSingleButton speed = new QMSingleButton(movementButton, 2, 2, "Fly Speed", () =>
+            QMSingleButton speed = new QMSingleButton(movementButton, 2, 3, "Fly Speed", () =>
             {
                 FlyComponent.FlySpeed += 0.1f;
             }, "Increase Fly Speed", false, PlusIcon, buttonImage);
 
-            QMSingleButton slow = new QMSingleButton(movementButton, 3, 2, "Fly Speed", () =>
+            QMSingleButton slow = new QMSingleButton(movementButton, 3, 3, "Fly Speed", () =>
             {
                 FlyComponent.FlySpeed -= 0.1f;
             }, "Decrease Fly Speed", false, MinusIcon, buttonImage);
