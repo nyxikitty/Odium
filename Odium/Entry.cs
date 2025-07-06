@@ -18,6 +18,7 @@ using Harmony;
 using Odium.UI;
 using Odium.ApplicationBot;
 using Odium.Patches;
+using OdiumLoader; // Add this using statement
 
 
 [assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
@@ -33,18 +34,19 @@ namespace Odium
         private float lastStatsUpdate = 0f;
         private const float STATS_UPDATE_INTERVAL = 1f;
         public static int loadIndex = 0;
+
         public override void OnInitializeMelon()
         {
             OdiumConsole.Initialize();
 
             OdiumConsole.LogGradient("Odium", "Starting mod initialization...", LogLevel.Info, true);
 
-            ModSetup.Initialize().GetAwaiter();           
-            
+            ModSetup.Initialize().GetAwaiter();
+
 
             BoneESP.SetEnabled(false);
             BoxESP.SetEnabled(false);
-            
+
             AwooochysPatchInitializer.Start();
             CoroutineManager.Init();
 
@@ -60,8 +62,6 @@ namespace Odium
 
         public override void OnApplicationStart()
         {
-            OdiumConsole.LogGradient("Odium", "Trying manual patch approach...", LogLevel.Info);
-
             MelonCoroutines.Start(QM.WaitForUI());
             MelonCoroutines.Start(OnNetworkManagerInit());
             QM.SetupMenu();
@@ -75,9 +75,11 @@ namespace Odium
             BoxESP.SetBoxColor(new UnityEngine.Color(0.584f, 0.008f, 0.996f, 1.0f));
             MainThreadDispatcher.Initialize();
         }
+
         public override void OnApplicationLateStart()
         {
             ApplicationBot.Bot.Start();
+            OdiumModuleLoader.OnApplicationStart();
         }
 
         public static bool heartbeatRun = false;
@@ -260,7 +262,7 @@ namespace Odium
                                 try
                                 {
 
-                                    var currentlocation = VRC.Core.APIUser.CurrentUser._location_k__BackingField; // WorldID
+                                    var currentlocation = VRC.Core.APIUser.CurrentUser._location_k__BackingField;
 
                                     string type = "user-leave";
 
@@ -328,14 +330,26 @@ namespace Odium
             OdiumConsole.LogGradient("OnLevelWasLoaded", $"Level -> {level}");
 
             loadIndex += 1;
-            
         }
-        
-        
-        //This will be used for enabling world specific world cheats or patching worlds functions, very useful.
+
         public override void OnSceneWasLoaded(int buildindex, string sceneName)
         {
+            // Call module loader for scene events
+            OdiumModuleLoader.OnSceneWasLoaded(buildindex, sceneName);
+
             OnLoadedSceneManager.LoadedScene(buildindex, sceneName);
+        }
+
+        public override void OnSceneWasUnloaded(int buildindex, string sceneName)
+        {
+            // Call module loader for scene events
+            OdiumModuleLoader.OnSceneWasUnloaded(buildindex, sceneName);
+        }
+
+        public override void OnApplicationQuit()
+        {
+            // Call module loader cleanup
+            OdiumModuleLoader.OnApplicationQuit();
         }
 
         public override void OnGUI()
@@ -346,20 +360,22 @@ namespace Odium
 
         public override void OnUpdate()
         {
+            // Call module loader update FIRST
+            OdiumModuleLoader.OnUpdate();
+
             InternalConsole.ProcessLogCache();
             MainMenu.Setup();
 
             DroneSwarmWrapper.UpdateDroneSwarm();
             portalSpam.OnUpdate();
             portalTrap.OnUpdate();
-            FlyComponent.OnUpdate();
             ApplicationBot.Bot.OnUpdate();
             BoneESP.Update();
             BoxESP.Update();
             SwasticaOrbit.OnUpdate();
             Jetpack.Update();
-            SpinBot.Update();
-            
+            FlyComponent.OnUpdate();
+
             if (Time.time - lastStatsUpdate >= STATS_UPDATE_INTERVAL)
             {
                 NameplateModifier.UpdatePlayerStats();
@@ -369,8 +385,17 @@ namespace Odium
             AdBlock.OnUpdate();
         }
 
+        public override void OnFixedUpdate()
+        {
+            // Call module loader fixed update
+            OdiumModuleLoader.OnFixedUpdate();
+        }
+
         public override void OnLateUpdate()
         {
+            // Call module loader late update
+            OdiumModuleLoader.OnLateUpdate();
+
             SpyCamera.LateUpdate();
         }
     }

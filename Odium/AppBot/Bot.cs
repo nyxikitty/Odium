@@ -40,6 +40,9 @@ namespace Odium.ApplicationBot
         public static ApiWorld Current_World { get { return RoomManager.field_Internal_Static_ApiWorld_0; } }
         public static bool chatBoxLagger = false;
 
+        // Add orbit offset for this specific bot
+        private static float BotOrbitOffset = 0f;
+
         private static Dictionary<string, Action<string, string>> Commands = new Dictionary<string, Action<string, string>>()
         {
             { "JoinWorld", (WorldID, botId) => {
@@ -149,6 +152,14 @@ namespace Odium.ApplicationBot
                 if (int.TryParse(Framerate, out int n))
                     Application.targetFrameRate = n;
             } },
+
+            // New command to set orbit offset
+            { "SetOrbitOffset", (Offset, botId) => {
+                if (botId == BotId) {
+                    if (float.TryParse(Offset, out float offset))
+                        BotOrbitOffset = offset;
+                }
+            } },
         };
 
         private static void MovePlayer(Vector3 pos)
@@ -240,14 +251,20 @@ namespace Odium.ApplicationBot
             }
         }
 
-
         private static void HandleBotFunctions()
         {
             if (OrbitTarget != null && PlayerWrapper.LocalPlayer != null)
             {
                 Physics.gravity = new Vector3(0, 0, 0);
                 alpha += Time.deltaTime * OrbitSpeed;
-                PlayerWrapper.LocalPlayer.transform.position = new Vector3(OrbitTarget.transform.position.x + a * (float)Math.Cos(alpha), OrbitTarget.transform.position.y, OrbitTarget.transform.position.z + b * (float)Math.Sin(alpha));
+
+                float adjustedAlpha = alpha + BotOrbitOffset;
+
+                PlayerWrapper.LocalPlayer.transform.position = new Vector3(
+                    OrbitTarget.transform.position.x + a * (float)Math.Cos(adjustedAlpha),
+                    OrbitTarget.transform.position.y + Height,
+                    OrbitTarget.transform.position.z + b * (float)Math.Sin(adjustedAlpha)
+                );
             }
 
             if (Spinbot && PlayerWrapper.LocalPlayer != null)
@@ -272,15 +289,36 @@ namespace Odium.ApplicationBot
             if (IsLaunchedAsBot())
             {
                 IsApplicationBot = true;
-                OdiumConsole.LogGradient("Odium", $"Running as Application Bot with assigned ID: {BotId}", LogLevel.Info);
+
+                GenerateUniqueOrbitOffset();
+
+                OdiumConsole.LogGradient("Odium", $"Running as Application Bot with assigned ID: {BotId}, Orbit Offset: {BotOrbitOffset:F2}", LogLevel.Info);
                 SocketConnection.Client();
                 RamClearLoop();
                 MelonCoroutines.Start(WaitForWorldJoin());
                 return;
-            } else
+            }
+            else
             {
                 OdiumConsole.LogGradient("Odium", "Starting bot server...", LogLevel.Info);
                 ApplicationBot.SocketConnection.StartServer();
+            }
+        }
+
+        private static void GenerateUniqueOrbitOffset()
+        {
+            if (!string.IsNullOrEmpty(BotId))
+            {
+                int hash = BotId.GetHashCode();
+                BotOrbitOffset = (hash % 360) * 0.0174532925f;
+            }
+            else if (BotProfile > 0)
+            {
+                BotOrbitOffset = (BotProfile * 60f) * 0.0174532925f;
+            }
+            else
+            {
+                BotOrbitOffset = (float)(new System.Random().NextDouble() * 2.0 * Math.PI);
             }
         }
 

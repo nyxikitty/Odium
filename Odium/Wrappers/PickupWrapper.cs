@@ -80,13 +80,16 @@ namespace Odium.Wrappers
             }
         }
 
+        public static List<VRC.SDK3.Components.VRCPickup> cachedPickups = new List<VRC.SDK3.Components.VRCPickup>();
+
         public static void HideAllPickups()
         {
             foreach (var pickup in GetVRCPickups())
             {
                 if (pickup != null && pickup.gameObject != null)
                 {
-                    pickup.enabled = false;
+                    cachedPickups.Add(pickup);
+                    pickup.gameObject.SetActive(false);
                 }
             }
         }
@@ -95,9 +98,9 @@ namespace Odium.Wrappers
         {
             foreach (var pickup in GetVRCPickups())
             {
-                if (pickup != null && pickup.gameObject != null)
+                if (pickup != null && cachedPickups != null)
                 {
-                    pickup.enabled = false;
+                    pickup.gameObject.SetActive(true);
                 }
             }
         }

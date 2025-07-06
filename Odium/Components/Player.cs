@@ -11,12 +11,13 @@ using static Interop;
 
 namespace Odium.Wrappers
 {
-    internal class PlayerWrapper
+    public static class PlayerWrapper
     {
         public static List<VRC.Player> Players = new List<VRC.Player>();
         public static VRC.Player LocalPlayer = null;
         public static int ActorId = 0;
         public static VRC.Player[] GetAllPlayers() => PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray();
+        public static int LocalPlayerActorNr => LocalPlayer.prop_Player_1.prop_Int32_0;
 
         public static UnityEngine.Vector3 GetPosition(VRC.Player player)
         {

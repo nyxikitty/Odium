@@ -96,7 +96,7 @@ namespace Odium.ApplicationBot
                 Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 listener.Bind(localEndPoint);
                 listener.Listen(10);
-                OdiumConsole.LogGradient("BotServer", $"Waiting for {botCount} connections...");
+                // OdiumConsole.LogGradient("BotServer", $"Waiting for {botCount} connections...");
 
                 for (int i = 0; i < botCount; i++)
                 {

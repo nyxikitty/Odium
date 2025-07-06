@@ -36,10 +36,10 @@ namespace Odium.QMPages
             
             QMToggleButton qMToggleButton3 = new QMToggleButton(movementButton, 3f, 0, "SpinBot", () =>
             {
-                SpinBot.Activate(true);
+                SpinBotModule.SetActive(true);
             }, delegate
             {
-                SpinBot.Activate(false);
+                SpinBotModule.SetActive(false);
             }, "HvH mode", false, buttonImage);
             
 

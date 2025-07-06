@@ -8,8 +8,7 @@ namespace Odium.Components
     {
         public static void Init()
         {
-            System.Console.WriteLine("CoroutineManager: " + "Starting Coroutines...");
-            MelonCoroutines.Start(CustomVRLoadingOverlay.Init());
+            
         }
     }
 }
