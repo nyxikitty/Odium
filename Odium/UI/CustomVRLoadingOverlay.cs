@@ -41,7 +41,7 @@ namespace Odium.UI
                 yield break;
             }
 
-            string filePath = "Odium/Rw1zXkq.png";
+            string filePath = "Odium/LoadingBackgrund.png";
             if (File.Exists(filePath))
             {
                 overlayImage.color = Color.white;

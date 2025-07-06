@@ -22,7 +22,7 @@ namespace Odium.Components
         
         public static void Update()
         {
-            if (!SpinBotbool)
+            if (SpinBotbool)
             {
                 Networking.LocalPlayer.gameObject.transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
             }
