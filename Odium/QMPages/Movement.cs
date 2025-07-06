@@ -26,7 +26,7 @@ namespace Odium.QMPages
             }, "Toggle Flight Mode", false, buttonImage);
             
             
-            QMToggleButton qMToggleButton2 = new QMToggleButton(movementButton, 1f, 0, "Jetpack", () =>
+            QMToggleButton qMToggleButton2 = new QMToggleButton(movementButton, 2f, 0, "Jetpack", () =>
             {
                 Jetpack.Activate(true);
             }, delegate
@@ -34,7 +34,7 @@ namespace Odium.QMPages
                 Jetpack.Activate(false);
             }, "Allows you to fly", false, buttonImage);
             
-            QMToggleButton qMToggleButton3 = new QMToggleButton(movementButton, 2f, 0, "SpinBot", () =>
+            QMToggleButton qMToggleButton3 = new QMToggleButton(movementButton, 3f, 0, "SpinBot", () =>
             {
                 SpinBot.Activate(true);
             }, delegate

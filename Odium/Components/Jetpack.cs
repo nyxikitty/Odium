@@ -1,47 +1,71 @@
 ﻿using System;
 using UnityEngine;
 using VRC.SDKBase;
-using Odium.Components;
+using MelonLoader;
 
 namespace Odium.Components
 {
-    public class Jetpack
+    public static class Jetpack
     {
-        public static bool Jetpackbool;
+        private static bool jetpackEnabled = false;
+
+        public static bool IsEnabled => jetpackEnabled;
 
         public static void Activate(bool state)
         {
+            jetpackEnabled = state;
+
             if (state)
             {
-                System.Console.WriteLine("Jetpack ON");
-                Jetpackbool = true;
+                MelonLogger.Msg("Jetpack ON");
             }
             else
             {
-                System.Console.WriteLine("Jetpack OFF");
-                Jetpackbool = false;
+                MelonLogger.Msg("Jetpack OFF");
             }
         }
 
         public static void Update()
         {
-            
-            if (Jetpackbool && Networking.LocalPlayer != null && (Bindings.Button_Jump.GetState(0) || Input.GetKey((KeyCode)32)))
+            if (!jetpackEnabled || Networking.LocalPlayer == null)
+                return;
+
+            bool jumpPressed = Input.GetKey(KeyCode.Space);
+
+            try
             {
-                try
-                {
-                    Vector3 velocity = Networking.LocalPlayer.GetVelocity();
-                    velocity.y = Networking.LocalPlayer.GetJumpImpulse();
-                    Networking.LocalPlayer.SetVelocity(velocity);
-                }
-                catch(Exception e)
-                {
-                    System.Console.WriteLine("FUCK IT" + e);
-                }
+                if (Bindings.Button_Jump != null)
+                    jumpPressed = jumpPressed || Bindings.Button_Jump.GetState(0);
             }
-            else
+            catch
             {
             }
+
+            if (jumpPressed)
+            {
+                ApplyJetpack();
+            }
+        }
+
+        private static void ApplyJetpack()
+        {
+            try
+            {
+                var player = Networking.LocalPlayer;
+                Vector3 velocity = player.GetVelocity();
+
+                velocity.y = player.GetJumpImpulse();
+                player.SetVelocity(velocity);
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error($"Jetpack error: {e.Message}");
+            }
+        }
+
+        public static void Toggle()
+        {
+            Activate(!jetpackEnabled);
         }
     }
 }

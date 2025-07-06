@@ -360,11 +360,6 @@ namespace Odium
             Jetpack.Update();
             SpinBot.Update();
             
-            //Incomming functions
-            
-            //SeatOnHead.Update();
-            //RayCastTP.Update();
-            
             if (Time.time - lastStatsUpdate >= STATS_UPDATE_INTERVAL)
             {
                 NameplateModifier.UpdatePlayerStats();
