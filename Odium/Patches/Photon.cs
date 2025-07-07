@@ -26,6 +26,9 @@ namespace Odium.Patches
         public static Dictionary<int, int> blockedMessages = new Dictionary<int, int>();
         public static int blockedChatBoxMessages = 0;
         public static Dictionary<int, int> blockedMessagesCount = new Dictionary<int, int>();
+        public static Dictionary<int, int> blockedUSpeakPacketCount = new Dictionary<int, int>();
+
+        public static Dictionary<int, int> blockedUSpeakPackets = new Dictionary<int, int>();
 
         private static Dictionary<int, bool> blocks = new Dictionary<int, bool>();
         private static Dictionary<int, bool> mutes = new Dictionary<int, bool>();
@@ -37,6 +40,42 @@ namespace Odium.Patches
             var eventCode = param_1.Code;
             switch (eventCode)
             {
+                case 1:
+                    byte[] e = Serializer.ToByteArray(param_1.CustomData);
+                    string base64 = Convert.ToBase64String(e);
+
+                    VRC.Player plr = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
+
+                    if (base64.Contains("ABOT0tFTTBOT0szTTBOCw=="))
+                    {
+                        if (!blockedUSpeakPacketCount.ContainsKey(param_1.sender))
+                        {
+                            blockedUSpeakPacketCount[param_1.sender] = 0;
+                            blockedUSpeakPackets[param_1.sender] = 0;
+                        }
+
+                        blockedUSpeakPacketCount[param_1.sender]++;
+                        blockedUSpeakPackets[param_1.sender]++;
+                        
+                        if (blockedUSpeakPacketCount[param_1.sender] == 1)
+                        {
+                            VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
+                            InternalConsole.LogIntoConsole($"<color=red>Blocked USpeak packet from user -> {player.field_Private_APIUser_0.displayName}</color>", "[OdiumProtection]");
+                        }
+                        else if (blockedUSpeakPackets[param_1.sender] == 200)
+                        {
+                            VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
+                            InternalConsole.LogIntoConsole(
+                                $"<color=red>Blocked {blockedUSpeakPacketCount[param_1.sender]} total USpeak packets from user -> {player.field_Private_APIUser_0.displayName}</color>"
+                            );
+                            blockedUSpeakPackets[param_1.sender] = 0;
+                        }
+                        return false;
+                    } else
+                    {
+                        return true;
+                    }
+                    break;
                 case 12:
                     if (Bot.movementMimic && Bot.movementMimicActorNr == param_1.sender)
                     {

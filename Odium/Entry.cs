@@ -74,6 +74,8 @@ namespace Odium
             BoxESP.SetEnabled(true);
             BoxESP.SetBoxColor(new UnityEngine.Color(0.584f, 0.008f, 0.996f, 1.0f));
             MainThreadDispatcher.Initialize();
+
+            MelonCoroutines.Start(RamClearLoop());
         }
 
         public override void OnApplicationLateStart()
@@ -358,6 +360,16 @@ namespace Odium
             BoxESP.OnGUI();
         }
 
+        private static IEnumerator RamClearLoop()
+        {
+            for (; ; )
+            {
+                yield return new WaitForSeconds(300f);
+                System.GC.Collect();
+                System.GC.WaitForPendingFinalizers();
+            }
+        }
+
         public override void OnUpdate()
         {
             // Call module loader update FIRST
@@ -381,8 +393,6 @@ namespace Odium
                 NameplateModifier.UpdatePlayerStats();
                 lastStatsUpdate = Time.time;
             }
-
-            AdBlock.OnUpdate();
         }
 
         public override void OnFixedUpdate()

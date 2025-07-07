@@ -63,7 +63,21 @@ namespace Odium.QMPages
                     SocketConnection.SendCommandToClients($"JoinWorld wrld_aeef8228-4e86-4774-9cbb-02027cf73730:91363~region(us) {botId}");
                 });
             }, "Send all bots back to their home", false, GoHomeIcon, bgImage);
-            
+
+            QMToggleButton lagger = new QMToggleButton(appBotsButton, 4, 0, "USpeak Spam", () =>
+            {
+                ApplicationBot.Entry.ActiveBotIds.ForEach(botId =>
+                {
+                    SocketConnection.SendCommandToClients($"USpeakSpam true {botId}");
+                });
+            }, () =>
+            {
+                ApplicationBot.Entry.ActiveBotIds.ForEach(botId =>
+                {
+                    SocketConnection.SendCommandToClients($"USpeakSpam false {botId}");
+                });
+            }, "Toggle bots orbiting around you", false, bgImage);
+
             QMSingleButton tpToMeButton = new QMSingleButton(appBotsButton, 1, 2, "TP To Me", () =>
             {
                 ApplicationBot.Entry.ActiveBotIds.ForEach(botId =>
@@ -86,7 +100,7 @@ namespace Odium.QMPages
                 });
             }, "Toggle bots orbiting around you", false, bgImage);
 
-            QMToggleButton lagger = new QMToggleButton(appBotsButton, 1, 3, "Chatbox Lagger", () =>
+            new QMToggleButton(appBotsButton, 1, 3, "Chatbox Lagger", () =>
             {
                 ApplicationBot.Entry.ActiveBotIds.ForEach(botId =>
                 {

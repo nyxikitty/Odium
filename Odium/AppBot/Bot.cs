@@ -134,8 +134,8 @@ namespace Odium.ApplicationBot
                 }
             } },
 
-            { "EventCachingDCToggle", (Enabled, botId) => {
-                EventCachingDC = Enabled != string.Empty;
+            { "USpeakSpam", (Enabled, botId) => {
+                USpeakSpam.ToggleUSpeakSpam(bool.Parse(Enabled));
             } },
 
             { "SpinbotToggle", (Enabled, botId) => {

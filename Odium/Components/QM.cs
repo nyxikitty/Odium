@@ -55,7 +55,6 @@ namespace Odium.Components
             while (UnityEngine.Object.FindObjectOfType<VRC.UI.Elements.QuickMenu>() == null)
                 yield return null;
 
-            AdBlock.OnQMInit();
             CreateMenu();
 
             OdiumConsole.LogGradient("Odium", $"{ObjectsToFind[currentObjectIndex]} found!");
