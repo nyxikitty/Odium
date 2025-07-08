@@ -125,7 +125,7 @@ namespace Odium.UX
             if (!ui_ready)
             {
                 QuickActionsHeader.SetActive(false);
-                QuickLinksHeader.SetActive(false);
+                // QuickLinksHeader.SetActive(false);
                 AdBanner.SetActive(false);
 
                 InternalConsole.LogIntoConsole("MainMenu Ready");
@@ -236,25 +236,10 @@ namespace Odium.UX
                     lastGradientChange = currentTime;
                 }
 
-                if ((currentTime - lastTimeCheck).TotalMilliseconds >= 1000)
+                var launchPadText = LaunchPadText.GetComponent<TextMeshProUGUIEx>();
+                if (launchPadText != null)
                 {
-                    lastTimeCheck = currentTime;
-
-                    var TextComponent = LaunchPadText.GetComponent<TextMeshProUGUIEx>();
-                    if (TextComponent != null)
-                    {
-                        int hour = currentTime.Hour;
-                        string greeting;
-
-                        if (hour >= 5 && hour < 12)
-                            greeting = "Good Morning";
-                        else if (hour >= 12 && hour < 18)
-                            greeting = "Good Evening";
-                        else
-                            greeting = "Good Night";
-
-                        TextComponent.text = greeting;
-                    }
+                    SetText(launchPadText);
                 }
             }
 
@@ -312,6 +297,11 @@ namespace Odium.UX
             GameObject safetyButton = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/ScrollRect/Viewport/VerticalLayoutGroup/Buttons_QuickActions/Button_Safety").gameObject;
             safetyButton.gameObject.SetActive(false);
             ui_ready = true;
+        }
+
+        public static void SetText(TextMeshProUGUIEx textComponent)
+        {
+            textComponent.text = "Odium";
         }
 
         private static void SetupButton(GameObject button, string name = "")

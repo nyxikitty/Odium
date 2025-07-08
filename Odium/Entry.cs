@@ -18,7 +18,10 @@ using Harmony;
 using Odium.UI;
 using Odium.ApplicationBot;
 using Odium.Patches;
-using OdiumLoader; // Add this using statement
+using OdiumLoader;
+using Odium.Threadding;
+using CursorLayerMod;
+using Odium.ButtonAPI.QM; // Add this using statement
 
 
 [assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
@@ -34,6 +37,7 @@ namespace Odium
         private float lastStatsUpdate = 0f;
         private const float STATS_UPDATE_INTERVAL = 1f;
         public static int loadIndex = 0;
+        public static string Current_World_id { get { return RoomManager.prop_ApiWorldInstance_0.id; } }
 
         public override void OnInitializeMelon()
         {
@@ -62,6 +66,8 @@ namespace Odium
 
         public override void OnApplicationStart()
         {
+                        HarmonyInstance = new HarmonyLib.Harmony("Odium.Harmony");
+
             MelonCoroutines.Start(QM.WaitForUI());
             MelonCoroutines.Start(OnNetworkManagerInit());
             QM.SetupMenu();
@@ -76,6 +82,8 @@ namespace Odium
             MainThreadDispatcher.Initialize();
 
             MelonCoroutines.Start(RamClearLoop());
+            Patching.Initialize();
+            ClonePatch.Patch();
         }
 
         public override void OnApplicationLateStart()
@@ -146,7 +154,7 @@ namespace Odium
                         {
                             PlayerRankTextDisplay.AddPlayer(obj.prop_IUser_0.prop_String_1, PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player.field_Private_APIUser_0, PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player);
                         }
-                        // Get the vrc player api
+
                         VRCPlayerApi vrcPlayerApi = PlayerWrapper.GetLocalPlayerAPIUser(obj.prop_IUser_0.prop_String_0);
                         VRC.Player player = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
 
@@ -154,9 +162,48 @@ namespace Odium
                         {
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
                             IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1);
+    
+                            MainThreadDispatcher.Enqueue(() =>
+                            {
+                                try
+                                {
+                                    var httpClient = new System.Net.Http.HttpClient();
+                                    string currentLocation = Current_World_id;
+                                    string displayName = obj.prop_IUser_0.prop_String_1;
+            
+                                        if (!string.IsNullOrEmpty(currentLocation) && !string.IsNullOrEmpty(displayName))
+                                        {
+                                            var requestBody = new
+                                            {
+                                                displayName = displayName,
+                                                location = currentLocation
+                                            };
+
+                                            string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
+                                            var content = new System.Net.Http.StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                                            string apiUrl = "http://api.snoofz.net:3778/api/odium/vrc/setUserLocation";
+                                            var response = httpClient.PostAsync(apiUrl, content).Result;
+                
+                                        if (response.IsSuccessStatusCode)
+                                        {
+                                            OdiumConsole.Log("Odium", $"Updated location on API: {displayName} -> {currentLocation}");
+                                        }
+                                        else
+                                        {
+                                            OdiumConsole.Log("Odium", $"Failed to update location on API. Status: {response.StatusCode}");
+                                        }
+                                    }
+                                }
+                                catch (System.Exception ex)
+                                {
+                                    OdiumConsole.Log("Odium", $"Error updating location on API: {ex.Message}");
+                                }
+                            });
                         }
 
                         InternalConsole.LogIntoConsole($"{player.field_Private_APIUser_0.displayName} joined!");
+                        DebugUI.LogMessage($"[PlayerJoin] -> {player.field_Private_APIUser_0.displayName}");
 
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
@@ -183,9 +230,48 @@ namespace Odium
                         {
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
                             IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1);
+
+                            MainThreadDispatcher.Enqueue(() =>
+                            {
+                                try
+                                {
+                                    var httpClient = new System.Net.Http.HttpClient();
+                                    string currentLocation = Current_World_id;
+                                    string displayName = obj.prop_IUser_0.prop_String_1;
+
+                                    if (!string.IsNullOrEmpty(currentLocation) && !string.IsNullOrEmpty(displayName))
+                                    {
+                                        var requestBody = new
+                                        {
+                                            displayName = displayName,
+                                            location = currentLocation
+                                        };
+
+                                        string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
+                                        var content = new System.Net.Http.StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                                        string apiUrl = "http://api.snoofz.net:3778/api/odium/vrc/setUserLocation";
+                                        var response = httpClient.PostAsync(apiUrl, content).Result;
+
+                                        if (response.IsSuccessStatusCode)
+                                        {
+                                            OdiumConsole.Log("Odium", $"Updated location on API: {displayName} -> {currentLocation}");
+                                        }
+                                        else
+                                        {
+                                            OdiumConsole.Log("Odium", $"Failed to update location on API. Status: {response.StatusCode}");
+                                        }
+                                    }
+                                }
+                                catch (System.Exception ex)
+                                {
+                                    OdiumConsole.Log("Odium", $"Error updating location on API: {ex.Message}");
+                                }
+                            });
                         }
 
                         InternalConsole.LogIntoConsole($"{player.field_Private_APIUser_0.displayName} joined!");
+                        DebugUI.LogMessage($"[PlayerJoin] -> {player.field_Private_APIUser_0.displayName}");
 
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
@@ -309,7 +395,8 @@ namespace Odium
                         }
 
                         VRC.Player player = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
-                        InternalConsole.LogIntoConsole($"{player.field_Private_APIUser_0.displayName} joined!");
+                        InternalConsole.LogIntoConsole($"{player.field_Private_APIUser_0.displayName} left!");
+                        DebugUI.LogMessage($"[PlayerLeave] -> {player.field_Private_APIUser_0.displayName}");
                         PlayerWrapper.Players.Remove(player);
                         BoneESP.OnPlayerLeft(player);
                         BoxESP.OnPlayerLeft(player);
@@ -329,6 +416,9 @@ namespace Odium
             OdiumAssetBundleLoader.Initialize();
             PlayerRankTextDisplay.ClearAll();
 
+            OdiumPerformancePanel.Initialize();
+            OdiumPerformancePanel.ShowPerformancePanel();
+
             OdiumConsole.LogGradient("OnLevelWasLoaded", $"Level -> {level}");
 
             loadIndex += 1;
@@ -338,7 +428,7 @@ namespace Odium
         {
             // Call module loader for scene events
             OdiumModuleLoader.OnSceneWasLoaded(buildindex, sceneName);
-
+            CursorLayerMod.CursorLayerMod.OnSceneWasLoaded(buildindex, sceneName);
             OnLoadedSceneManager.LoadedScene(buildindex, sceneName);
         }
 
@@ -372,7 +462,6 @@ namespace Odium
 
         public override void OnUpdate()
         {
-            // Call module loader update FIRST
             OdiumModuleLoader.OnUpdate();
 
             InternalConsole.ProcessLogCache();
@@ -387,11 +476,44 @@ namespace Odium
             SwasticaOrbit.OnUpdate();
             Jetpack.Update();
             FlyComponent.OnUpdate();
+            CursorLayerMod.CursorLayerMod.OnUpdate();
 
             if (Time.time - lastStatsUpdate >= STATS_UPDATE_INTERVAL)
             {
                 NameplateModifier.UpdatePlayerStats();
                 lastStatsUpdate = Time.time;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Minus))
+            {
+                OdiumInputDialog.ShowInputDialog(
+                "Enter chat message",
+                (input, wasSubmitted) =>
+                {
+                    if (wasSubmitted)
+                    {
+                        try
+                        {
+                            MainThreadDispatcher.Enqueue(() =>
+                            {
+                                Chatbox.SendCustomChatMessage(input);
+                                OdiumInputDialog.CloseAllInputDialogs();
+                            });
+                        }
+                        catch (System.Exception ex)
+                        {
+                            OdiumInputDialog.CloseAllInputDialogs();
+                        }
+                    }
+                    else
+                    {
+                        OdiumConsole.Log("Input", "User cancelled input", LogLevel.Info);
+                        OdiumInputDialog.CloseAllInputDialogs();
+                    }
+                },
+                defaultValue: "Enter chat message",
+                placeholder: "Enter chat message"
+            );
             }
         }
 

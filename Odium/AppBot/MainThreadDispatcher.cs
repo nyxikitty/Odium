@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using MelonLoader;
 
-namespace Odium.ApplicationBot
+namespace Odium.Threadding
 {
     public static class MainThreadDispatcher
     {

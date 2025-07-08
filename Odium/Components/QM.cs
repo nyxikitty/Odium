@@ -15,6 +15,11 @@ using VRC.UI.Elements;
 using TMPro;
 using System.IO;
 using Odium.QMPages;
+using Odium.ButtonAPI.MM;
+using Odium.Wrappers;
+using System.Windows.Forms;
+using Odium.Threadding;
+using Odium.IUserPage.MM;
 
 namespace Odium.Components
 {
@@ -90,6 +95,15 @@ namespace Odium.Components
                 Sprite buttonImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ButtonBackground.png");
                 Sprite halfButtonImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\QMHalfButton.png");
 
+                Sprite DeafenIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Deafen.png");
+                Sprite HeadphonesIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Headphones.png");
+                Sprite MuteIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Mute.png");
+                Sprite MicrophoneIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Microphone.png");
+                Sprite SkipIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Skip.png");
+                Sprite PauseIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Pause.png");
+                Sprite RewindIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Rewind.png");
+                Sprite PlayIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Play.png");
+
                 List<QMNestedMenu> nestedMenus = Entry.Initialize(buttonImage, halfButtonImage);
 
                 World.InitializePage(nestedMenus[0], buttonImage);
@@ -99,9 +113,60 @@ namespace Odium.Components
                 AppBot.InitializePage(nestedMenus[4], buttonImage, halfButtonImage);
                 Visuals.InitializePage(nestedMenus[5], buttonImage);
 
+                Functions.Initialize();
+                WorldFunctions.Initialize();
+
+                QMMainIconButton.CreateButton(RewindIcon, () => {
+                    MediaControls.SpotifyRewind();
+                });
+
+
+                QMMainIconButton.CreateToggle(PauseIcon, PlayIcon,
+                    () => {
+                        MediaControls.SpotifyPause();
+                    },
+                    () => {
+                        MediaControls.SpotifyPause();
+                    });
+
+                QMMainIconButton.CreateButton(SkipIcon, () =>
+                {
+                    MediaControls.SpotifySkip();
+                });
+
+                QMMainIconButton.CreateToggle(DeafenIcon, HeadphonesIcon,
+                    () => {
+                        Task.Run(async () => await MediaControls.ToggleDiscordDeafen());
+                    },
+                    () => {
+                        Task.Run(async () => await MediaControls.ToggleDiscordDeafen());
+                    });
+
+                QMMainIconButton.CreateToggle(MuteIcon, MicrophoneIcon,
+                    () => {
+                        Task.Run(async () => await MediaControls.ToggleDiscordMute());
+                    },
+                    () => {
+                        Task.Run(async () => await MediaControls.ToggleDiscordMute());
+                    });
+
+                Transform itemContainer = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
+                Transform iconButton = itemContainer.Find("Button_QM_Report");
+
+                iconButton.gameObject.SetActive(false);
+
+                Transform itemContainer2 = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
+                Transform iconButton2 = itemContainer.Find("Button_QM_Expand");
+
+                iconButton2.gameObject.SetActive(false);
+                DebugUI.InitializeDebugMenu();
+
+                SidebarListItemCloner.CreateSidebarItem("Odium Users");
+                OdiumPerformancePanel.ShowPerformancePanel();
             }
             catch (Exception ex)
             {
+                OdiumConsole.Log("Odium", $"Error creating menu: {ex.Message}", LogLevel.Error);
             }
         }
 

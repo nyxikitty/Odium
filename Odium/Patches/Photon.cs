@@ -1,5 +1,6 @@
 ﻿using ExitGames.Client.Photon;
 using HarmonyLib;
+using Odium;
 using Odium.ApplicationBot;
 using Odium.Components;
 using Odium.Modules;

@@ -1,4 +1,5 @@
 ﻿using Odium.Components;
+using Odium.Odium;
 using Odium.Wrappers;
 using System;
 using System.IO;
@@ -46,6 +47,95 @@ namespace Odium.ButtonAPI.QM
             return GetPlayerByDisplayName(textComponent.text);
         }
 
+        public static string GetMMIUser()
+        {
+            var textObject = AssignedVariables.userInterface.transform.Find("Canvas_MainMenu(Clone)/Container/MMParent/HeaderOffset/Menu_UserDetail/Header_MM_UserName/LeftItemContainer/Text_Title");
+            if (textObject == null)
+            {
+                OdiumConsole.Log("Odium", "Text object not found in GetMMIUser method", LogLevel.Error);
+                return null;
+            }
+
+            var textComponent = textObject.GetComponent<TextMeshProUGUIEx>();
+            if (textComponent == null)
+            {
+                OdiumConsole.Log("Odium", "Text component not found in GetMMIUser method", LogLevel.Error);
+                return null;
+            }
+
+            return textComponent.prop_String_0;
+        }
+
+        public static string GetMMWorldName()
+        {
+            var textObject = AssignedVariables.userInterface.transform.Find("Canvas_MainMenu(Clone)/Container/MMParent/HeaderOffset/Menu_MM_WorldInformation/Header_MM_H1/Text_WorldName");
+            if (textObject == null)
+            {
+                OdiumConsole.Log("Odium", "Text object not found in GetMMWorldName method", LogLevel.Error);
+                return null;
+            }
+
+            var textComponent = textObject.GetComponent<TextMeshProUGUIEx>();
+            if (textComponent == null)
+            {
+                OdiumConsole.Log("Odium", "Text component not found in GetMMWorldName method", LogLevel.Error);
+                return null;
+            }
+
+            return textComponent.prop_String_0;
+        }
+
+        public static string GetFPS()
+        {
+            var textObject = AssignedVariables.userInterface.transform.Find("Canvas_MainMenu(Clone)/Container/MMParent/HeaderOffset/Menu_Settings/Menu_MM_DynamicSidePanel/Panel_SectionList/ScrollRect_Navigation_Container/ScrollRect_Content/Viewport/VerticalLayoutGroup/Debug/Debug/Settings_Panel_1/VerticalLayoutGroup/DebugStats/LeftItemContainer/Cell_MM_SettingStat (1)/Text_Detail_Original");
+            if (textObject == null)
+            {
+                return null;
+            }
+
+            var textComponent = textObject.GetComponent<TextMeshProUGUIEx>();
+            if (textComponent == null)
+            {
+                return null;
+            }
+
+            return textComponent.prop_String_0;
+        }
+
+        public static string GetPing()
+        {
+            var textObject = AssignedVariables.userInterface.transform.Find("Canvas_MainMenu(Clone)/Container/MMParent/HeaderOffset/Menu_Settings/Menu_MM_DynamicSidePanel/Panel_SectionList/ScrollRect_Navigation_Container/ScrollRect_Content/Viewport/VerticalLayoutGroup/Debug/Debug/Settings_Panel_1/VerticalLayoutGroup/DebugStats/LeftItemContainer/Cell_MM_SettingStat (2)/Text_Detail_Original");
+            if (textObject == null)
+            {
+                return null;
+            }
+
+            var textComponent = textObject.GetComponent<TextMeshProUGUIEx>();
+            if (textComponent == null)
+            {
+                return null;
+            }
+
+            return textComponent.prop_String_0;
+        }
+
+        public static string GetBuild()
+        {
+            var textObject = AssignedVariables.userInterface.transform.Find("Canvas_MainMenu(Clone)/Container/MMParent/HeaderOffset/Menu_Settings/Menu_MM_DynamicSidePanel/Panel_SectionList/ScrollRect_Navigation_Container/ScrollRect_Content/Viewport/VerticalLayoutGroup/Debug/Debug/Settings_Panel_1/VerticalLayoutGroup/DebugStats/LeftItemContainer/Cell_MM_SettingStat (3)/Text_Detail_Original");
+            if (textObject == null)
+            {
+                return null;
+            }
+
+            var textComponent = textObject.GetComponent<TextMeshProUGUIEx>();
+            if (textComponent == null)
+            {
+                return null;
+            }
+
+            return textComponent.prop_String_0;
+        }
+
         public static GameObject GetSelectedUserPageGrid()
         {
             if (_selectedUserPageGrid == null)
@@ -57,6 +147,7 @@ namespace Odium.ButtonAPI.QM
 
             return _selectedUserPageGrid;
         }
+
 
         public static MainMenu MainMenu
         {

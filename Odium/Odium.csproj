@@ -246,10 +246,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ButtonAPI\MM\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Remove="Patches\Initpatches.cs" />
     <Compile Remove="Components\ExternalMenu.cs" />
     <Compile Remove="Components\HttpServer.cs" />
