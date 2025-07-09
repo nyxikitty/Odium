@@ -229,7 +229,7 @@ namespace Odium.UI
             }
         }
 
-        private static string GetPlayerPlatform(Player player)
+        public static string GetPlayerPlatform(Player player)
         {
             try
             {
@@ -247,7 +247,7 @@ namespace Odium.UI
             }
         }
 
-        private static string GetPlatformIcon(string platform)
+        public static string GetPlatformIcon(string platform)
         {
             switch (platform?.ToLower())
             {
@@ -262,7 +262,7 @@ namespace Odium.UI
             }
         }
 
-        private static bool IsFriend(Player player)
+        public static bool IsFriend(Player player)
         {
             try
             {
@@ -275,7 +275,7 @@ namespace Odium.UI
             }
         }
 
-        private static bool IsAdult(Player player)
+        public static bool IsAdult(Player player)
         {
             try
             {
@@ -334,7 +334,7 @@ namespace Odium.UI
             }
         }
 
-        private static string GetRankDisplayName(Rank rank)
+        public static string GetRankDisplayName(Rank rank)
         {
             switch (rank)
             {
@@ -347,7 +347,7 @@ namespace Odium.UI
             }
         }
 
-        private static Rank GetPlayerRank(VRC.Core.APIUser apiUser)
+        public static Rank GetPlayerRank(VRC.Core.APIUser apiUser)
         {
             if (apiUser.hasLegendTrustLevel || apiUser.hasVeteranTrustLevel)
             {
@@ -371,7 +371,7 @@ namespace Odium.UI
             }
         }
 
-        private static Color GetRankColor(Rank rank)
+        public static Color GetRankColor(Rank rank)
         {
             switch (rank)
             {
@@ -404,7 +404,7 @@ namespace Odium.UI
             return Color.white;
         }
 
-        private static string ColorToHex(Color color)
+        public static string ColorToHex(Color color)
         {
             int r = Mathf.RoundToInt(color.r * 255);
             int g = Mathf.RoundToInt(color.g * 255);

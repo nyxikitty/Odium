@@ -10,10 +10,15 @@ using VRC.UI.Core.Styles;
 using Odium.QMPages;
 using VRC.Ui;
 using static System.Net.Mime.MediaTypeNames;
+using System.Collections;
+using Odium.UI;
+using BestHTTP.SecureProtocol.Org.BouncyCastle.Asn1.X509;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using MelonLoader;
 
 namespace Odium.ButtonAPI.QM
 {
-    internal class DebugUI
+    internal class PlayerDebugUI
     {
         // Constants
         private const int MAX_LINES = 33;
@@ -23,6 +28,8 @@ namespace Odium.ButtonAPI.QM
         public static GameObject background;
         public static TextMeshProUGUI text;
         public static List<string> messageList = new List<string>();
+        private static string displayText = ""; // Added missing variable
+        private static object playerListCoroutine; // To manage the coroutine
 
         private static readonly Dictionary<string, Color> keywordColors = new Dictionary<string, Color>
         {
@@ -62,9 +69,9 @@ namespace Odium.ButtonAPI.QM
                 label = UnityEngine.Object.Instantiate(dashboardHeader.gameObject);
                 label.SetActive(true);
 
-                label.transform.SetParent(userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/Wing_Right"));
+                label.transform.SetParent(userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/Wing_Left"));
 
-                label.transform.localPosition = new Vector3(450f, -400f, 0f);
+                label.transform.localPosition = new Vector3(-450f, -400f, 0f);
                 label.transform.localRotation = Quaternion.identity;
                 label.transform.localScale = new Vector3(1f, 1f, 1f);
 
@@ -165,15 +172,31 @@ namespace Odium.ButtonAPI.QM
                 label.SetActive(true);
                 background.SetActive(true);
 
-                LogMessage("Debug UI Active!");
-                LogMessage("Join Player joined");
-                LogMessage("Error Test error message");
+                StartPlayerListLoop();
 
                 OdiumConsole.Log("DebugUI", "Debug menu positioned correctly!");
             }
             catch (Exception ex)
             {
                 OdiumConsole.Log("DebugUI", $"Failed to initialize debug menu: {ex.Message}");
+            }
+        }
+
+        public static void StartPlayerListLoop()
+        {
+            if (playerListCoroutine != null)
+            {
+                StopPlayerListLoop();
+            }
+            playerListCoroutine = MelonLoader.MelonCoroutines.Start(PlayerListLoop());
+        }
+
+        public static void StopPlayerListLoop()
+        {
+            if (playerListCoroutine != null)
+            {
+                MelonCoroutines.Stop(playerListCoroutine);
+                playerListCoroutine = null;
             }
         }
 
@@ -241,7 +264,6 @@ namespace Odium.ButtonAPI.QM
                                      FormatMessage(message.Substring(lastSpace + 1));
                 }
 
-                // Apply color coding
                 foreach (var kvp in keywordColors)
                 {
                     if (formattedMessage.Contains(kvp.Key))
@@ -259,22 +281,76 @@ namespace Odium.ButtonAPI.QM
                 return message + "\n";
             }
         }
-
-        public static void LogMessage(string message)
+        public static string GetPlatformIcon(string platform)
         {
-            try
+            switch (platform?.ToLower())
             {
-                if (messageList.Count >= MAX_LINES)
+                case "standalonewindows":
+                    return "[<color=#00BFFF>PC</color>]";
+                case "android":
+                    return "[<color=#32CD32>QUEST</color>]";
+                case "ios":
+                    return "[<color=#FF69B4>iOS</color>]";
+                default:
+                    return "[<color=#FFFFFF>UNK</color>]";
+            }
+        }
+
+        public static IEnumerator PlayerListLoop()
+        {
+            while (true)
+            {
+                try
                 {
-                    messageList.RemoveAt(0);
+                    displayText = "";
+
+                    if (PlayerManager.prop_PlayerManager_0?.field_Private_List_1_Player_0 != null &&
+                        PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.Count > 0)
+                    {
+                        int playerCount = PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.Count;
+                        displayText += $"<color=#00FF00>Players Online: {playerCount}</color>\n\n";
+
+                        foreach (var player in PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0)
+                        {
+                            if (player?.field_Private_APIUser_0 != null)
+                            {
+                                string platform = PlayerRankTextDisplay.GetPlayerPlatform(player);
+                                string platformText = GetPlatformIcon(platform);
+                                bool friend = PlayerRankTextDisplay.IsFriend(player);
+                                bool adult = PlayerRankTextDisplay.IsAdult(player);
+
+                                string friendText = friend ? "<color=#FFD700>[FRIEND]</color>" : "";
+                                string adultText = adult ? "<color=#90EE90>[18+]</color>" : "";
+
+                                string rankDisplay = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+
+                                Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                                string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
+                                string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                                displayText += $"<size=16><color={hexColor}>{player.field_Private_APIUser_0.displayName}</color></size> [{rankDisplay}] <size=16>{platformText}</size> <size=16>{friendText}</color> <size=16>{adultText}</size>\n";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        displayText = "<color=#FF0000>No players found</color>\n";
+                    }
+
+                    messageList = new List<string>()
+                    {
+                        displayText
+                    };
+
+                    UpdateDisplay();
+                }
+                catch (Exception ex)
+                {
+                    OdiumConsole.Log("DebugUI", $"Error in PlayerListLoop: {ex.Message}");
+                    displayText = $"<color=#FF0000>Error: {ex.Message}</color>\n";
+                    UpdateDisplay();
                 }
 
-                messageList.Add($"{message}\n");
-                UpdateDisplay();
-            }
-            catch (Exception ex)
-            {
-                OdiumConsole.Log("DebugUI", $"Failed to log message: {ex.Message}");
+                yield return new WaitForSeconds(1f);
             }
         }
 
@@ -293,6 +369,38 @@ namespace Odium.ButtonAPI.QM
             catch (Exception ex)
             {
                 OdiumConsole.Log("DebugUI", $"Failed to update display: {ex.Message}");
+            }
+        }
+
+        public static void Cleanup()
+        {
+            StopPlayerListLoop();
+            if (label != null)
+            {
+                UnityEngine.Object.Destroy(label);
+                label = null;
+            }
+            background = null;
+            text = null;
+            messageList.Clear();
+            displayText = "";
+        }
+    }
+
+    public class CoroutineStarter : MonoBehaviour
+    {
+        private static CoroutineStarter _instance;
+        public static CoroutineStarter Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("CoroutineStarter");
+                    _instance = go.AddComponent<CoroutineStarter>();
+                    DontDestroyOnLoad(go);
+                }
+                return _instance;
             }
         }
     }

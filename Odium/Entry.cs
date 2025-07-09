@@ -202,8 +202,10 @@ namespace Odium
                             });
                         }
 
-                        InternalConsole.LogIntoConsole($"{player.field_Private_APIUser_0.displayName} joined!");
-                        DebugUI.LogMessage($"[PlayerJoin] -> {player.field_Private_APIUser_0.displayName}");
+                        UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                        string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
+                        string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                        DebugUI.LogMessage($"[<color=#77dd77>PlayerJoin</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
 
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
@@ -270,8 +272,10 @@ namespace Odium
                             });
                         }
 
-                        InternalConsole.LogIntoConsole($"{player.field_Private_APIUser_0.displayName} joined!");
-                        DebugUI.LogMessage($"[PlayerJoin] -> {player.field_Private_APIUser_0.displayName}");
+                        UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                        string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
+                        string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                        DebugUI.LogMessage($"[<color=#77dd77>PlayerJoin</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
 
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
@@ -395,8 +399,10 @@ namespace Odium
                         }
 
                         VRC.Player player = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
-                        InternalConsole.LogIntoConsole($"{player.field_Private_APIUser_0.displayName} left!");
-                        DebugUI.LogMessage($"[PlayerLeave] -> {player.field_Private_APIUser_0.displayName}");
+                        UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                        string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
+                        string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                        DebugUI.LogMessage($"[<color=#ff6961>PlayerLeave</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
                         PlayerWrapper.Players.Remove(player);
                         BoneESP.OnPlayerLeft(player);
                         BoxESP.OnPlayerLeft(player);

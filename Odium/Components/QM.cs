@@ -160,6 +160,7 @@ namespace Odium.Components
 
                 iconButton2.gameObject.SetActive(false);
                 DebugUI.InitializeDebugMenu();
+                PlayerDebugUI.InitializeDebugMenu();
 
                 SidebarListItemCloner.CreateSidebarItem("Odium Users");
                 OdiumPerformancePanel.ShowPerformancePanel();

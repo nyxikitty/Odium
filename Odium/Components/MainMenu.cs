@@ -125,7 +125,7 @@ namespace Odium.UX
             if (!ui_ready)
             {
                 QuickActionsHeader.SetActive(false);
-                // QuickLinksHeader.SetActive(false);
+                QuickLinksHeader.SetActive(false);
                 AdBanner.SetActive(false);
 
                 InternalConsole.LogIntoConsole("MainMenu Ready");
