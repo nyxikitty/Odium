@@ -25,6 +25,7 @@ namespace Odium.QMPages
             QMNestedMenu settingsButton = new QMNestedMenu(tabMenu, 4, 3.5f, "Settings", "<color=#9101FF>               Settings</color>", "World Utility Functions", true, null, halfButtonImage);
             QMNestedMenu appBotsButton = new QMNestedMenu(tabMenu, 1, 3.5f, "App Bots", "<color=#9101FF>               App Bots</color>", "App Bots Utility Functions", true, null, halfButtonImage);
             QMNestedMenu visualsButton = new QMNestedMenu(tabMenu, 4, 0, "Visuals", "<color=#9101FF>               Visuals</color>", "Visuals Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\VisualIcon.png"), buttonImage);
+            QMNestedMenu gameHacks = new QMNestedMenu(tabMenu, 2.5f, 1, "Game Hacks", "<color=#9101FF>                  Game Hacks</color>", "World Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), buttonImage);
 
             List<QMNestedMenu> menus = new List<QMNestedMenu>
             {

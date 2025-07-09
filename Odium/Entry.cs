@@ -21,7 +21,7 @@ using Odium.Patches;
 using OdiumLoader;
 using Odium.Threadding;
 using CursorLayerMod;
-using Odium.ButtonAPI.QM; // Add this using statement
+using Odium.ButtonAPI.QM;
 
 
 [assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
