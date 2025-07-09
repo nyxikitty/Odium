@@ -112,6 +112,7 @@ namespace Odium.Components
                 Settings.InitializePage(nestedMenus[3], buttonImage);
                 AppBot.InitializePage(nestedMenus[4], buttonImage, halfButtonImage);
                 Visuals.InitializePage(nestedMenus[5], buttonImage);
+                GameHacks.InitializePage(nestedMenus[6], buttonImage);
 
                 Functions.Initialize();
                 WorldFunctions.Initialize();

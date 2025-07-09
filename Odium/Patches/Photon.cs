@@ -31,8 +31,8 @@ namespace Odium.Patches
 
         public static Dictionary<int, int> blockedUSpeakPackets = new Dictionary<int, int>();
 
-        private static Dictionary<int, bool> blocks = new Dictionary<int, bool>();
-        private static Dictionary<int, bool> mutes = new Dictionary<int, bool>();
+        public static List<string> blockedUserIds = new List<string>();
+        public static List<string> mutedUserIds = new List<string>();
 
         [HarmonyPrefix]
         [HarmonyPatch("OnEvent")]
@@ -165,110 +165,85 @@ namespace Odium.Patches
                             {
                                 var playerId = moderationDict[1].Unbox<int>();
 
-                                bool blockStatusChanged = false;
 
                                 if (moderationDict.ContainsKey(10))
                                 {
                                     var blockStatus = moderationDict[10].Unbox<bool>();
 
-                                    if (!blocks.ContainsKey(playerId) || blocks[playerId] != blockStatus)
+                                    if (blockStatus == true && !blockedUserIds.Contains(playerId.ToString()))
                                     {
-                                        blocks[playerId] = blockStatus;
-                                        blockStatusChanged = true;
+                                        blockedUserIds.Add(playerId.ToString());
 
-                                        if (blockStatus == true)
+                                        VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
+                                        if (AssignedVariables.announceBlocks)
                                         {
-                                            VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
-                                            if (AssignedVariables.announceBlocks)
-                                            {
-                                                Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} BLOCKED me");
-                                            }
-                                            Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
-                                            string hexColor = NameplateModifier.ColorToHex(rankColor);
-                                            OdiumBottomNotification.ShowNotification($"<color=#FF5151>BLOCKED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
-                                            InternalConsole.LogIntoConsole(
-                                                $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>BLOCKED</color> you!"
-                                            );
+                                            Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} BLOCKED me");
                                         }
-                                        else
-                                        {
-                                            VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
-                                            if (AssignedVariables.announceBlocks)
-                                            {
-                                                Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} UNBLOCKED me");
-                                            }
-                                            Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
-                                            string hexColor = NameplateModifier.ColorToHex(rankColor);
-                                            OdiumBottomNotification.ShowNotification($"<color=#FF5151>UNBLOCKED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
-                                            InternalConsole.LogIntoConsole(
-                                                $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>UNBLOCKED</color> you!"
-                                            );
-                                        }
+                                        Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
+                                        string hexColor = NameplateModifier.ColorToHex(rankColor);
+                                        OdiumBottomNotification.ShowNotification($"<color=#FF5151>BLOCKED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
+                                        InternalConsole.LogIntoConsole(
+                                            $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>BLOCKED</color> you!"
+                                        );
                                     }
-                                }
-
-                                if (!blockStatusChanged && moderationDict.ContainsKey(11))
-                                {
-                                    var muteStatus = moderationDict[11].Unbox<bool>();
-
-                                    if (!mutes.ContainsKey(playerId) || mutes[playerId] != muteStatus)
+                                    else if (blockStatus == false && blockedUserIds.Contains(playerId.ToString()))
                                     {
-                                        mutes[playerId] = muteStatus;
+                                        blockedUserIds.Remove(playerId.ToString());
 
-                                        if (muteStatus == true)
+                                        VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
+                                        if (AssignedVariables.announceBlocks)
                                         {
-                                            VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
-                                            if (AssignedVariables.announceMutes)
-                                            {
-                                                Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} MUTED me");
-                                            }
-                                            Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
-                                            string hexColor = NameplateModifier.ColorToHex(rankColor);
-                                            OdiumBottomNotification.ShowNotification($"<color=#FF5151>MUTED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
-                                            InternalConsole.LogIntoConsole(
-                                                $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>MUTED</color> you!"
-                                            );
+                                            Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} UNBLOCKED me");
                                         }
-                                        else
-                                        {
-                                            VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
-                                            if (AssignedVariables.announceMutes)
-                                            {
-                                                Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} unfortunately UNMUTED me");
-                                            }
-                                            Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
-                                            string hexColor = NameplateModifier.ColorToHex(rankColor);
-                                            OdiumBottomNotification.ShowNotification($"<color=#FF5151>UNMUTED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
-                                            InternalConsole.LogIntoConsole(
-                                                $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>UNMUTED</color> you!"
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (moderationDict.ContainsKey(10))
-                                {
-                                    var blocks = Il2CppArrayBase<int>.WrapNativeGenericArrayPointer(moderationDict[10].Pointer);
-                                    if (blocks != null && blocks.Length > 0)
-                                    {
-                                        foreach (var blockId in blocks)
-                                        {
-                                        }
+                                        Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
+                                        string hexColor = NameplateModifier.ColorToHex(rankColor);
+                                        OdiumBottomNotification.ShowNotification($"<color=#FF5151>UNBLOCKED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
+                                        InternalConsole.LogIntoConsole(
+                                            $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>UNBLOCKED</color> you!"
+                                        );
                                     }
                                 }
 
                                 if (moderationDict.ContainsKey(11))
                                 {
-                                    var mutes = Il2CppArrayBase<int>.WrapNativeGenericArrayPointer(moderationDict[11].Pointer);
-                                    if (mutes != null && mutes.Length > 0)
+                                    var muteStatus = moderationDict[11].Unbox<bool>();
+
+                                    if (muteStatus == true && !mutedUserIds.Contains(playerId.ToString()))
                                     {
-                                        foreach (var muteId in mutes)
+                                        mutedUserIds.Add(playerId.ToString());
+
+                                        VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
+                                        if (AssignedVariables.announceMutes)
                                         {
+                                            Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} MUTED me");
                                         }
+                                        Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
+                                        string hexColor = NameplateModifier.ColorToHex(rankColor);
+                                        OdiumBottomNotification.ShowNotification($"<color=#FF5151>MUTED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
+                                        InternalConsole.LogIntoConsole(
+                                            $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>MUTED</color> you!"
+                                        );
+                                    }
+                                    else if (muteStatus == false && mutedUserIds.Contains(playerId.ToString()))
+                                    {
+                                        mutedUserIds.Remove(playerId.ToString());
+
+                                        VRCPlayer player = PlayerWrapper.GetPlayerFromPhotonId(playerId);
+                                        if (AssignedVariables.announceMutes)
+                                        {
+                                            Chatbox.SendCustomChatMessage($"[Odium] -> {player.field_Private_VRCPlayerApi_0.displayName} unfortunately UNMUTED me");
+                                        }
+                                        Color rankColor = NameplateModifier.GetRankColor(NameplateModifier.GetPlayerRank(player._player.field_Private_APIUser_0));
+                                        string hexColor = NameplateModifier.ColorToHex(rankColor);
+                                        OdiumBottomNotification.ShowNotification($"<color=#FF5151>UNMUTED</color> by <color={hexColor}>{player.field_Private_VRCPlayerApi_0.displayName}");
+                                        InternalConsole.LogIntoConsole(
+                                            $"<color=#7B02FE>{player.field_Private_VRCPlayerApi_0.displayName}</color> <color=red>UNMUTED</color> you!"
+                                        );
                                     }
                                 }
+                            }
+                            else
+                            {
                             }
                         }
                     }
