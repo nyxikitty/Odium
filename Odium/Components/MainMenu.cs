@@ -118,7 +118,7 @@ namespace Odium.UX
 
             if (SafteyButton == null)
             {
-                SafteyButton = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/ScrollRect/Viewport/VerticalLayoutGroup/Buttons_QuickActions/Button_Safety");
+                SafteyButton = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/ScrollRect/Viewport/VerticalLayoutGroup/Buttons_QuickActions/SitStandCalibrateButton");
             }
 
 
@@ -128,12 +128,10 @@ namespace Odium.UX
                 QuickLinksHeader.SetActive(false);
                 AdBanner.SetActive(false);
 
-                InternalConsole.LogIntoConsole("MainMenu Ready");
-
                 ConsoleObject = GameObject.Instantiate(ConsoleTemplate, ConsoleParent.transform);
                 InitConsole(ConsoleObject);
 
-                SetupButton(SafteyButton, "Button_Safety");
+                SetupButton(SafteyButton, "SitStandCalibrateButton");
 
                 ExampleButton = GameObject.Instantiate(ConsoleTemplate, ConsoleParent.transform);
                 ExampleButton.name = "ExampleButton";
@@ -153,7 +151,7 @@ namespace Odium.UX
                     Image imageEx = iconGameObject.GetComponent<Image>();
                     if (imageEx != null)
                     {
-                        string LogoPath = Path.Combine(Directory.GetCurrentDirectory(), "Odium", "TabImage.png");
+                        string LogoPath = Path.Combine(Directory.GetCurrentDirectory(), "Odium", "OdiumIcon.png");
                         Sprite Logo = SpriteUtil.LoadFromDisk(LogoPath);
                         imageEx.sprite = Logo;
                     }
@@ -250,10 +248,10 @@ namespace Odium.UX
                 if (child == null) continue;
 
                 string btnName = child.gameObject.name;
-                if (btnName.Contains("Button_Worlds")) child.localPosition = new UnityEngine.Vector3(-348, 70, 0);
-                else if (btnName.Contains("Button_Avatars")) child.localPosition = new UnityEngine.Vector3(-116, 70, 0);
-                else if (btnName.Contains("Button_Social")) child.localPosition = new UnityEngine.Vector3(116, 70, 0);
-                else if (btnName.Contains("Button_ViewGroups")) child.localPosition = new UnityEngine.Vector3(348, 70, 0);
+                if (btnName.Contains("Button_Worlds")) child.localPosition = new UnityEngine.Vector3(-348, -25, 0);
+                else if (btnName.Contains("Button_Avatars")) child.localPosition = new UnityEngine.Vector3(-116, -25, 0);
+                else if (btnName.Contains("Button_Social")) child.localPosition = new UnityEngine.Vector3(116, -25, 0);
+                else if (btnName.Contains("Button_ViewGroups")) child.localPosition = new UnityEngine.Vector3(348, -25, 0);
 
                 if (!ui_ready)
                 {
@@ -273,9 +271,11 @@ namespace Odium.UX
                 if (child == null) continue;
 
                 string btnName = child.gameObject.name;
+
                 if (btnName.Contains("Button_GoHome")) child.localPosition = new UnityEngine.Vector3(-225, -15, 0);
                 else if (btnName.Contains("Button_Respawn")) child.localPosition = new UnityEngine.Vector3(0, -15, 0);
                 else if (btnName.Contains("Button_SelectUser")) child.localPosition = new UnityEngine.Vector3(225, -15, 0);
+                else if (btnName.Contains("SitStandCalibrateButton")) child.localPosition = new UnityEngine.Vector3(225, -15, 0);
 
                 if (!ui_ready)
                 {
@@ -286,7 +286,7 @@ namespace Odium.UX
                 {
                     SetupButton(child.gameObject);
                 }
-                else if (btnName.Contains("Button_Safety"))
+                else if (btnName.Contains("SitStandCalibrateButton"))
                 {
                     SetupButton(child.gameObject);
                 }
@@ -301,7 +301,7 @@ namespace Odium.UX
 
         public static void SetText(TextMeshProUGUIEx textComponent)
         {
-            textComponent.text = "Odium";
+            textComponent.text = "";
         }
 
         private static void SetupButton(GameObject button, string name = "")
@@ -337,7 +337,9 @@ namespace Odium.UX
                 var rectTransform = background.gameObject.GetComponent<RectTransform>();
                 if (rectTransform != null)
                 {
-                    rectTransform.sizeDelta = new UnityEngine.Vector2(725, 480);
+                    // Reduced height from 480 to 280 (200 pixel reduction)
+                    rectTransform.sizeDelta = new UnityEngine.Vector2(725, 380);
+                    rectTransform.transform.localPosition = new UnityEngine.Vector2(0, -50);
                 }
 
                 var renderComponent = background.gameObject.GetComponent<Image>();
@@ -388,8 +390,6 @@ namespace Odium.UX
                 lstring._localizationKey = "[ CONSOLE ]";
                 tooltip._localizableString = lstring;
             }
-
-            InternalConsole.LogIntoConsole("Console Ready");
         }
 
         private static void ResizeButton(Transform button)
@@ -428,7 +428,7 @@ namespace Odium.UX
     {
         private static List<string> ConsoleLogCache = new List<string>();
 
-        public static void LogIntoConsole(string txt, string type = "<color=#A500FE>[Log]</color>", string color = "A500FE")
+        public static void LogIntoConsole(string txt, string type = "<color=#8d142b>[Log]</color>", string color = "8d142b")
         {
             var time = DateTime.Now.ToString("HH:mm");
             var sb = new StringBuilder();
@@ -443,8 +443,9 @@ namespace Odium.UX
 
         public static void ProcessLogCache()
         {
-            try {
-                if (ConsoleLogCache.Count > 25)
+            try
+            {
+                if (ConsoleLogCache.Count > 19)
                 {
                     ConsoleLogCache.RemoveRange(0, ConsoleLogCache.Count - 21);
                 }
@@ -465,7 +466,7 @@ namespace Odium.UX
                     var rectTransform = text.gameObject.GetComponent<RectTransform>();
                     if (rectTransform != null)
                     {
-                        rectTransform.localPosition = new UnityEngine.Vector3(0, 250, 0);
+                        rectTransform.localPosition = new UnityEngine.Vector3(0, 180, 0);
                         rectTransform.sizeDelta = new UnityEngine.Vector2(650, 100);
                     }
 
@@ -476,7 +477,8 @@ namespace Odium.UX
                     textMesh.prop_String_0 = logs.ToString();
                 }
                 MainMenu.ConsoleObject.SetActive(true);
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
 
             }

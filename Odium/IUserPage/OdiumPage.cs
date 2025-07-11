@@ -25,13 +25,13 @@ namespace Odium.IUserPage
             Sprite OrbitIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OrbitIcon.png");
             Sprite CogWheelIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\CogWheelIcon.png");
             Sprite MimicIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\MovementIcon.png");
-            Sprite TabImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\TabImage.png");
+            Sprite TabImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OdiumIcon.png");
             Sprite InfoIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\InfoIcon.png");
 
-            QMNestedMenu appBotsPage = new QMNestedMenu(qMNestedMenu1, 1f, 1.5f, "App Bots", "App Bots", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu pickupsPage = new QMNestedMenu(qMNestedMenu1, 2f, 1.5f, "Pickups", "Pickups", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu functionsPage = new QMNestedMenu(qMNestedMenu1, 3f, 1.5f, "Functions", "Functions", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1.5f, "Spy Utils", "Spy Utils", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu appBotsPage = new QMNestedMenu(qMNestedMenu1, 1f, 1.5f, "App Bots", "<color=#8d142b>App Bots</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu pickupsPage = new QMNestedMenu(qMNestedMenu1, 2f, 1.5f, "Pickups", "<color=#8d142b>Pickups</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu functionsPage = new QMNestedMenu(qMNestedMenu1, 3f, 1.5f, "Functions", "<color=#8d142b>Functions</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1.5f, "Spy Utils", "<color=#8d142b>Spy Utils</color>", "Opens Select User menu", false, null, bgImage);
 
             // Stalk Audio
             new QMToggleButton(stalkPage, 1.5f, 2f, "Spy USpeak", () =>

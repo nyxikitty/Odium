@@ -29,7 +29,6 @@ namespace Odium.Patches
             }
 
             if (__0 != 43) return true;
-
             try
             {
                 if (__1 != null)

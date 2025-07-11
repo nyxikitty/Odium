@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using MelonLoader;
+using Photon.Realtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,16 @@ namespace Odium.Patches
             OdiumEntry.HarmonyInstance.Patch(typeof(VRCPlusStatus).GetProperty(nameof(VRCPlusStatus.prop_Object1PublicTBoTUnique_1_Boolean_0)).GetGetMethod(), null, Patching.GetPatch("VRCPlusOverride"), null, null, null);
             patchCount++;
 
+            OdiumEntry.HarmonyInstance.Patch(typeof(VRC.Networking.UdonSync).GetMethod("UdonSyncRunProgramAsRPC"), GetPatch("USRunProgramAsRPC"));
+            patchCount++;
+
             OdiumConsole.Log("[Patching]", $"Patches initialized successfully. Total patches: {Patching.patchCount}");
+        }
+
+        private static bool USRunProgramAsRPC(string __0, Player __1)
+        {
+            MelonLogger.Msg(ConsoleColor.Cyan, $"[UdonSync] RunProgramAsRPC - {__0}, {__1.field_Private_Int32_0} - {(__1.field_Private_String_0 == null ? "null" : __1.field_Private_String_0)}, {(__1.field_Private_String_1 == null ? "null" : __1.field_Private_String_1)}");
+            return true;
         }
 
         private static void VRCPlusOverride(ref Object1PublicTBoTUnique<bool> __result)

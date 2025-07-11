@@ -4,6 +4,7 @@ using VRC;
 
 namespace Odium.Components
 {
+    // Awoochy added this fuck ass AI generated code
     public class ThirdPersonComponent
     {
         private static bool isThirdPerson = false;
@@ -425,7 +426,6 @@ namespace Odium.Components
             smoothTime = Mathf.Clamp(time, 0f, 1f);
         }
 
-        // NEW: Methods to adjust the offset camera position
         public static void SetOffsetCameraPosition(Vector3 localPosition)
         {
             if (isThirdPerson && mainCamera != null && headBone != null)
@@ -442,7 +442,6 @@ namespace Odium.Components
             }
         }
 
-        // Preset positions for different viewing angles
         public static void SetThirdPersonPreset(string preset)
         {
             if (!isThirdPerson) return;
@@ -472,7 +471,6 @@ namespace Odium.Components
             }
         }
 
-        // NEW: Manual head visibility control
         public static void ToggleHeadVisibility()
         {
             SetHeadVisibility(!headVisible);
@@ -483,7 +481,6 @@ namespace Odium.Components
             SetHeadVisibility(visible);
         }
 
-        // NEW: Debugging methods
         public static void DebugAvatarStructure()
         {
             try
@@ -561,7 +558,6 @@ namespace Odium.Components
         {
             GetHeadBone();
 
-            // If we're in third person, hide the new head
             if (isThirdPerson)
             {
                 SetHeadVisibility(false);
@@ -576,7 +572,6 @@ namespace Odium.Components
                 RestoreFirstPersonOffset();
             }
 
-            // Make sure head is visible when destroying
             SetHeadVisibility(true);
 
             if (thirdPersonCameraObject != null)

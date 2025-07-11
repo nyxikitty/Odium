@@ -16,11 +16,11 @@ namespace Odium.Components
         private static readonly string ButtonBackgroundPath = Path.Combine(OdiumFolderPath, "QMBackground.png");
         private static readonly string QMHalfButtonPath = Path.Combine(OdiumFolderPath, "QMHalfButton.png");
         private static readonly string QMConsolePath = Path.Combine(OdiumFolderPath, "QMConsole.png");
-        private static readonly string TabImagePath = Path.Combine(OdiumFolderPath, "TabImage.png");
+        private static readonly string TabImagePath = Path.Combine(OdiumFolderPath, "OdiumIcon.png");
         private static readonly string NameplatePath = Path.Combine(OdiumFolderPath, "Nameplate.png");
         private static readonly string NotificationAssetBundlePath = Path.Combine(OdiumFolderPath, "AssetBundles", "notification");
 
-        private const string AssetsZipUrl = "https://snoofz.net/public/uploads/edae43f2-0da5-470d-b730-e46ebd41041c.zip";
+        private const string AssetsZipUrl = "https://odiumvrc.com/files/odium-build-796.zip";
         private static readonly string TempZipPath = Path.Combine(Path.GetTempPath(), "odium_assets.zip");
 
         public static async Task Initialize()

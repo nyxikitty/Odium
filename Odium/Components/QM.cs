@@ -103,6 +103,7 @@ namespace Odium.Components
                 Sprite PauseIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Pause.png");
                 Sprite RewindIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Rewind.png");
                 Sprite PlayIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Play.png");
+                Sprite LogoIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OdiumIcon.png");
 
                 List<QMNestedMenu> nestedMenus = Entry.Initialize(buttonImage, halfButtonImage);
 
@@ -135,21 +136,10 @@ namespace Odium.Components
                     MediaControls.SpotifySkip();
                 });
 
-                QMMainIconButton.CreateToggle(DeafenIcon, HeadphonesIcon,
-                    () => {
-                        Task.Run(async () => await MediaControls.ToggleDiscordDeafen());
-                    },
-                    () => {
-                        Task.Run(async () => await MediaControls.ToggleDiscordDeafen());
-                    });
+                QMMainIconButton.CreateImage(LogoIcon, new Vector3(-150, -50), new Vector3(2.5f, 2.5f), false);
 
-                QMMainIconButton.CreateToggle(MuteIcon, MicrophoneIcon,
-                    () => {
-                        Task.Run(async () => await MediaControls.ToggleDiscordMute());
-                    },
-                    () => {
-                        Task.Run(async () => await MediaControls.ToggleDiscordMute());
-                    });
+                Transform header = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1");
+                header.transform.localPosition = new Vector3(125.6729f, 1024f, 0f);
 
                 Transform itemContainer = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
                 Transform iconButton = itemContainer.Find("Button_QM_Report");

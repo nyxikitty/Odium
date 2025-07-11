@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using VRC.SDKBase;
 
+// I fixed it, yw Awooochy
 namespace Odium.Components
 {
     public class SpyCamera : MonoBehaviour

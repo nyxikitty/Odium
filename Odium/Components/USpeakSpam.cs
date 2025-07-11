@@ -31,6 +31,8 @@ namespace Odium.Components
             while (isEnabled)
             {
                 byte[] array = Convert.FromBase64String("AAAAAGfp+Lv2GRkA+MrI08yxTwBkxqwATk9LRU0wTk9LM00wTg==");
+
+                // This is for older packets, remove the first 4 bytes because they handle actorNr on the server now
                 byte[] trimmedArray = new byte[array.Length - 4];
                 Buffer.BlockCopy(array, 4, trimmedArray, 0, array.Length - 4);
 

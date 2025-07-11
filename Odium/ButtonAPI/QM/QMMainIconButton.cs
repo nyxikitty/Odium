@@ -12,7 +12,6 @@ namespace Odium.ButtonAPI.QM
         {
             try
             {
-                // Get the right container and template button
                 Transform itemContainer = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
                 Transform iconButton = itemContainer.Find("Button_QM_Report");
 
@@ -22,18 +21,15 @@ namespace Odium.ButtonAPI.QM
                     return;
                 }
 
-                // Create new button
                 GameObject newIconButton = GameObject.Instantiate(iconButton.gameObject, itemContainer);
                 newIconButton.name = "Button_QMOdium" + Guid.NewGuid();
                 newIconButton.SetActive(true);
 
-                // Reset transform
                 RectTransform rectTransform = newIconButton.GetComponent<RectTransform>();
                 rectTransform.localPosition = Vector3.zero;
                 rectTransform.localRotation = Quaternion.identity;
                 rectTransform.localScale = Vector3.one;
 
-                // Set icon
                 Transform iconTransform = newIconButton.transform.Find("Icon");
                 if (iconTransform != null)
                 {
@@ -45,7 +41,6 @@ namespace Odium.ButtonAPI.QM
                     }
                 }
 
-                // Setup button handler
                 Button button = newIconButton.GetComponent<Button>();
                 if (button != null && onClick != null)
                 {
@@ -53,8 +48,51 @@ namespace Odium.ButtonAPI.QM
                     button.onClick.AddListener(onClick);
                 }
 
-                // Reorder to be before the report button
                 newIconButton.transform.SetSiblingIndex(iconButton.GetSiblingIndex());
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error creating QM icon button: {ex}");
+            }
+        }
+
+        public static void CreateImage(Sprite sprite, Vector3 position, Vector3 size, bool includeBackground = false)
+        {
+            try
+            {
+                Transform itemContainer = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
+                Transform iconButton = itemContainer.Find("Button_QM_Report");
+
+                if (itemContainer == null || iconButton == null)
+                {
+                    Debug.LogError("Could not find required QuickMenu elements!");
+                    return;
+                }
+
+                GameObject newIconButton = GameObject.Instantiate(iconButton.gameObject, itemContainer);
+                newIconButton.name = "Button_QMOdium" + Guid.NewGuid();
+                newIconButton.SetActive(true);
+
+                RectTransform rectTransform = newIconButton.GetComponent<RectTransform>();
+                rectTransform.localPosition = position;
+                rectTransform.localRotation = Quaternion.identity;
+                rectTransform.localScale = size;
+
+                Transform iconTransform = newIconButton.transform.Find("Icon");
+                iconTransform.localPosition = new Vector3(-208.8547f, -22.7455f, 0);
+
+                if (iconTransform != null)
+                {
+                    Image iconImage = iconTransform.GetComponent<Image>();
+                    if (iconImage != null)
+                    {
+                        iconImage.sprite = sprite;
+                        iconImage.overrideSprite = sprite;
+                    }
+                }
+
+                var background = newIconButton.transform.FindChild("Background");
+                background.gameObject.SetActive(includeBackground);
             }
             catch (Exception ex)
             {
@@ -66,7 +104,6 @@ namespace Odium.ButtonAPI.QM
         {
             try
             {
-                // Get the right container and template button
                 Transform itemContainer = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
                 Transform iconButton = itemContainer.Find("Button_QM_Report");
 
@@ -76,18 +113,15 @@ namespace Odium.ButtonAPI.QM
                     return;
                 }
 
-                // Create new button
                 GameObject newToggleButton = GameObject.Instantiate(iconButton.gameObject, itemContainer);
                 newToggleButton.name = "Toggle_QMOdium" + Guid.NewGuid();
                 newToggleButton.SetActive(true);
 
-                // Reset transform
                 RectTransform rectTransform = newToggleButton.GetComponent<RectTransform>();
                 rectTransform.localPosition = Vector3.zero;
                 rectTransform.localRotation = Quaternion.identity;
                 rectTransform.localScale = Vector3.one;
 
-                // Get icon transform
                 Transform iconTransform = newToggleButton.transform.Find("Icon");
                 if (iconTransform == null)
                 {

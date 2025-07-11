@@ -15,6 +15,7 @@ using System.Net.Http;
 using Odium.Components;
 using Odium.Modules;
 using Odium.ApplicationBot;
+using Odium.UX;
 
 namespace Odium.Odium
 {
@@ -23,12 +24,12 @@ namespace Odium.Odium
         private static string apiUrl = "https://snoofz.net";
         private static readonly HttpClient httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(10) };
 
-        public static void IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(string userId, string username)
+        public static void IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(string userId, string username, string hexColor)
         {
-            MelonCoroutines.Start(CheckBanStatusHttpClient(userId, username));
+            MelonCoroutines.Start(CheckBanStatusHttpClient(userId, username, hexColor));
         }
 
-        private static IEnumerator CheckBanStatusHttpClient(string userId, string username)
+        private static IEnumerator CheckBanStatusHttpClient(string userId, string username, string hexColor)
         {
             OdiumNotificationLoader.Initialize();
             OdiumBottomNotification.Initialize();
@@ -116,7 +117,7 @@ namespace Odium.Odium
 
             if (shouldRegister)
             {
-                MelonCoroutines.Start(RegisterUserHttpClient(userId, username));
+                MelonCoroutines.Start(RegisterUserHttpClient(userId, username, hexColor));
             }
             else
             {
@@ -125,7 +126,7 @@ namespace Odium.Odium
             }
         }
 
-        private static IEnumerator RegisterUserHttpClient(string userId, string username)
+        private static IEnumerator RegisterUserHttpClient(string userId, string username, string hexColor)
         {
             string jsonData = $"{{\"username\":\"{username}\",\"id\":\"{userId}\"}}";
 
@@ -170,7 +171,8 @@ namespace Odium.Odium
                 if (!AssignedVariables.welcomeNotificationShown)
                 {
                     OdiumConsole.LogGradient("OdiumSecurity", $"Welcome back, {username}!");
-                    OdiumBottomNotification.ShowNotification($"<color=#9D4EDD>W</color><color=#A663E8>e</color><color=#B078F3>l</color><color=#BA8DFE>c</color><color=#C4A2FF>o</color><color=#CDB7FF>m</color><color=#D6CCFF>e</color> <color=#DFE1FF>b</color><color=#E8F6FF>a</color><color=#F1BBFF>c</color><color=#FA80FF>k</color><color=#CA02FC>, {username}</color><color=#9D4EDD>!</color>");
+                    OdiumBottomNotification.ShowNotification($"<color=#e91f42>Welcome back</color>, <color={hexColor}>{username}</color><color=#e91f42>!</color>");
+                    InternalConsole.LogIntoConsole($"<color=#e91f42>Welcome back</color>, <color={hexColor}>{username}</color><color=#e91f42>!</color>");
                     AssignedVariables.welcomeNotificationShown = true;
 
                     OdiumPerformancePanel.ShowPerformancePanel();

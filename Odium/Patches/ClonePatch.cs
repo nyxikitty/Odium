@@ -6,6 +6,7 @@ namespace Odium.Patches
 {
     public class ClonePatch
     {
+        // Simple Avatar patch idk
         public static void Patch()
         {
             EasyPatching.DeepCoreInstance.Patch(typeof(APIUser).GetProperty("allowAvatarCopying").GetSetMethod(), new HarmonyMethod(typeof(ClonePatch).GetMethod("Hook", BindingFlags.Static | BindingFlags.NonPublic)), null, null, null, null);

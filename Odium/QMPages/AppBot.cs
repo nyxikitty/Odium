@@ -43,9 +43,9 @@ namespace Odium.QMPages
             Sprite OrbitIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OrbitIcon.png");
             Sprite CogWheelIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\CogWheelIcon.png");
             Sprite MimicIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\MovementIcon.png");
-            Sprite TabImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\TabImage.png");
+            Sprite TabImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OdiumIcon.png");
 
-            QMNestedMenu qMNestedMenu1 = new QMNestedMenu(ApiUtils.GetSelectedUserPageGrid().transform, 0, 0, "Odium", "Odium", "Opens Select User menu", true, TabImage, bgImage);
+            QMNestedMenu qMNestedMenu1 = new QMNestedMenu(ApiUtils.GetSelectedUserPageGrid().transform, 0, 0, "<color=#8d142b>Odium</color>", "<color=#8d142b>Odium</color>", "Opens Select User menu", true, TabImage, bgImage);
             QMNestedMenu appBotsPage = OdiumPage.Initialize(qMNestedMenu1, bgImage);
 
             QMSingleButton joinMeButton = new QMSingleButton(appBotsButton, 1, 0, "Join Me", () =>
@@ -114,9 +114,9 @@ namespace Odium.QMPages
                 });
             }, "Toggle bots orbiting around you", false, bgImage);
 
-            QMNestedMenu qMNestedMenu = new QMNestedMenu(appBotsButton, 4, 3.5f, "Profiles", "Profiles", "Manage bot profiles", true, null, halfButtonImage);
-            QMNestedMenu loginMenu = new QMNestedMenu(qMNestedMenu, 4, 3f, "Setup", "Setup", "Manage bot profiles", true, null, halfButtonImage);
-            QMNestedMenu launchMenu = new QMNestedMenu(qMNestedMenu, 4, 3.5f, "Launch", "Launch", "Manage bot profiles", true, null, halfButtonImage);
+            QMNestedMenu qMNestedMenu = new QMNestedMenu(appBotsButton, 4, 3.5f, "Profiles", "<color=#8d142b>Profiles</color>", "Manage bot profiles", true, null, halfButtonImage);
+            QMNestedMenu loginMenu = new QMNestedMenu(qMNestedMenu, 4, 3f, "Setup", "<color=#8d142b>Setup</color>", "Manage bot profiles", true, null, halfButtonImage);
+            QMNestedMenu launchMenu = new QMNestedMenu(qMNestedMenu, 4, 3.5f, "Launch", "<color=#8d142b>Launch</color>", "Manage bot profiles", true, null, halfButtonImage);
 
             new QMSingleButton(loginMenu, 1, 0, "Bot 1", () =>
             {
@@ -175,7 +175,7 @@ namespace Odium.QMPages
                 string bot = ApplicationBot.Entry.ActiveBotIds[0];
                 string botId = bot.Split('-')[0];
 
-                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
 
                 new QMSingleButton(bot1, 2, 1.5f, "TP To Me", () =>
                 {
@@ -190,7 +190,7 @@ namespace Odium.QMPages
                     SocketConnection.SendCommandToClients($"OrbitSelected false {bot}");
                 }, "Toggle bots orbiting around you", false, bgImage);
 
-                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
 
                 new QMSingleButton(appBotsPage1, 1, 0f, "TP To", () =>
                 {
@@ -233,7 +233,7 @@ namespace Odium.QMPages
                 string bot = ApplicationBot.Entry.ActiveBotIds[1];
                 string botId = bot.Split('-')[0];
 
-                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
                 new QMSingleButton(bot1, 2, 1.5f, "TP To Me", () =>
                 {
                     SocketConnection.SendCommandToClients($"TeleportToPlayer {PlayerWrapper.GetPlayerByDisplayName(get_selected_player_name()).field_Private_APIUser_0.id} {bot}");
@@ -247,7 +247,7 @@ namespace Odium.QMPages
                     SocketConnection.SendCommandToClients($"OrbitSelected false {bot}");
                 }, "Toggle bots orbiting around you", false, bgImage);
 
-                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
 
                 new QMSingleButton(appBotsPage1, 1, 0f, "TP To", () =>
                 {
@@ -291,7 +291,7 @@ namespace Odium.QMPages
                 string bot = ApplicationBot.Entry.ActiveBotIds[2];
                 string botId = bot.Split('-')[0];
 
-                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
 
                 new QMSingleButton(bot1, 2, 1.5f, "TP To Me", () =>
                 {
@@ -306,7 +306,7 @@ namespace Odium.QMPages
                     SocketConnection.SendCommandToClients($"OrbitSelected false {bot}");
                 }, "Toggle bots orbiting around you", false, bgImage);
 
-                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
 
                 new QMSingleButton(appBotsPage1, 1, 0f, "TP To", () =>
                 {
@@ -350,7 +350,7 @@ namespace Odium.QMPages
                 string bot = ApplicationBot.Entry.ActiveBotIds[3];
                 string botId = bot.Split('-')[0];
 
-                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu bot1 = new QMNestedMenu(qMNestedMenu, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
 
                 new QMSingleButton(bot1, 2, 1.5f, "TP To Me", () =>
                 {
@@ -365,7 +365,7 @@ namespace Odium.QMPages
                     SocketConnection.SendCommandToClients($"OrbitSelected false {bot}");
                 }, "Toggle bots orbiting around you", false, bgImage);
 
-                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, botId, "Manage bot profiles", false, null, bgImage);
+                QMNestedMenu appBotsPage1 = new QMNestedMenu(appBotsPage, xCount, yCount, botId, $"<color=#8d142b>{botId}</color>", "Manage bot profiles", false, null, bgImage);
 
                 new QMSingleButton(appBotsPage1, 1, 0f, "TP To", () =>
                 {

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Drawing;
-using System.Runtime.InteropServices;
 using System.IO;
 using MelonLoader;
 using UnityEngine;
@@ -22,6 +20,11 @@ using OdiumLoader;
 using Odium.Threadding;
 using CursorLayerMod;
 using Odium.ButtonAPI.QM;
+using VRC.UI.Client;
+using VRC.Ui;
+using System.Net.Http;
+using System.Text;
+using Newtonsoft.Json;
 
 
 [assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
@@ -39,34 +42,273 @@ namespace Odium
         public static int loadIndex = 0;
         public static string Current_World_id { get { return RoomManager.prop_ApiWorldInstance_0.id; } }
 
+        // Authentication related fields
+        private static readonly string AUTH_ENDPOINT = "https://odiumvrc.com/api/validate-purchase";
+        private static readonly string AUTH_FILE = Path.Combine(Environment.CurrentDirectory, "Odium", "auth.dat");
+
         public override void OnInitializeMelon()
         {
-            OdiumConsole.Initialize();
-
-            OdiumConsole.LogGradient("Odium", "Starting mod initialization...", LogLevel.Info, true);
-
-            ModSetup.Initialize().GetAwaiter();
-
-
-            BoneESP.SetEnabled(false);
-            BoxESP.SetEnabled(false);
-
-            AwooochysPatchInitializer.Start();
-            CoroutineManager.Init();
-
             try
             {
+                OdiumConsole.Initialize();
+                OdiumConsole.LogGradient("Odium", "Starting authentication check...", LogLevel.Info, true);
+
+                if (!AuthenticateUser())
+                {
+                    MelonLogger.Error("Authentication failed. Closing application.");
+                    Application.Quit();
+                    Environment.Exit(1);
+                    return;
+                }
+
+                OdiumConsole.LogGradient("Odium", "Authentication successful! Starting mod initialization...", LogLevel.Info, true);
+                wasKeyValid = true;
+
+                ModSetup.Initialize().GetAwaiter();
+
+                BoneESP.SetEnabled(false);
+                BoxESP.SetEnabled(false);
+
+                CoroutineManager.Init();
+
                 OdiumConsole.LogGradient("System", "Initialization complete!", LogLevel.Info);
             }
             catch (Exception ex)
             {
-                OdiumConsole.Log("Error", $"Failed to initialize: {ex.Message}", LogLevel.Error);
             }
+        }
+
+        private bool AuthenticateUser()
+        {
+            try
+            {
+                // Check if we have saved valid credentials
+                if (File.Exists(AUTH_FILE))
+                {
+                    try
+                    {
+                        string savedData = File.ReadAllText(AUTH_FILE);
+                        var authData = JsonConvert.DeserializeObject<AuthData>(savedData);
+
+                        if (ValidateCredentials(authData.Email, authData.Key))
+                        {
+                            OdiumConsole.LogGradient("Auth", "Using saved credentials...", LogLevel.Info);
+                            wasKeyValid = true;
+                            return true;
+                        }
+                        else
+                        {
+                            // Saved credentials are invalid, delete the file
+                            File.Delete(AUTH_FILE);
+                            OdiumConsole.Log("Auth", "Saved credentials are invalid, requesting new ones...", LogLevel.Warning);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OdiumConsole.Log("Auth", $"Error reading saved credentials: {ex.Message}", LogLevel.Warning);
+                        if (File.Exists(AUTH_FILE))
+                            File.Delete(AUTH_FILE);
+                    }
+                }
+
+                // Show authentication dialog
+                return ShowAuthenticationDialog();
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("Auth", $"Authentication error: {ex.Message}", LogLevel.Error);
+                ShowErrorDialog("Authentication Error", $"An error occurred during authentication:\n{ex.Message}");
+                return false;
+            }
+        }
+
+        private bool ShowAuthenticationDialog()
+        {
+            try
+            {
+                return ShowFileBasedAuth();
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("Auth", $"Dialog error: {ex.Message}", LogLevel.Error);
+                return false;
+            }
+        }
+
+        private bool ShowFileBasedAuth()
+        {
+            try
+            {
+                string authFilePath = Path.Combine(Environment.CurrentDirectory, "Odium", "temp_auth.txt");
+                Directory.CreateDirectory(Path.GetDirectoryName(authFilePath));
+
+                // Check if user already created the file
+                if (File.Exists(authFilePath))
+                {
+                    string[] lines = File.ReadAllLines(authFilePath);
+                    if (lines.Length >= 2)
+                    {
+                        string email = lines[0].Trim();
+                        string key = lines[1].Trim();
+
+                        if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(key))
+                        {
+                            if (ValidateCredentials(email, key))
+                            {
+                                SaveCredentials(email, key);
+                                File.Delete(authFilePath);
+                                wasKeyValid = true;
+                                OdiumConsole.LogGradient("Auth", "Authentication successful via file!", LogLevel.Info);
+                                return true;
+                            }
+                            else
+                            {
+                                File.Delete(authFilePath); // Clean up invalid file
+                                OdiumConsole.Log("Auth", "Invalid credentials in temp_auth.txt file.", LogLevel.Error);
+                            }
+                        }
+                    }
+                    File.Delete(authFilePath); // Clean up malformed file
+                }
+
+                // Create instruction file if authentication is needed
+                string instructions = @"ODIUM AUTHENTICATION REQUIRED
+=====================================
+
+To authenticate Odium, please create a file named 'temp_auth.txt' in the Odium folder with your credentials:
+
+File Location: {0}
+
+File Contents (2 lines):
+Line 1: Your purchase email
+Line 2: Your invite key
+
+Example:
+user@example.com
+your-invite-key-here
+
+After creating the file, restart VRChat.
+The file will be automatically deleted after successful authentication.
+
+VRChat will now close so you can set up authentication.";
+
+                string instructionPath = Path.Combine(Environment.CurrentDirectory, "Odium", "auth_instructions.txt");
+                File.WriteAllText(instructionPath, string.Format(instructions, authFilePath));
+
+                OdiumConsole.Log("Auth", $"Authentication required. Instructions written to: {instructionPath}", LogLevel.Info);
+                OdiumConsole.Log("Auth", $"Create temp_auth.txt at: {authFilePath}", LogLevel.Info);
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("Auth", $"File auth error: {ex.Message}", LogLevel.Error);
+                return false;
+            }
+        }
+
+        private bool ValidateCredentials(string email, string key)
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(10);
+
+                    var requestData = new
+                    {
+                        email = email,
+                        key = key
+                    };
+
+                    string jsonContent = JsonConvert.SerializeObject(requestData);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                    var response = client.PostAsync(AUTH_ENDPOINT, content).Result;
+                    string responseContent = response.Content.ReadAsStringAsync().Result;
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = JsonConvert.DeserializeObject<ValidationResponse>(responseContent);
+                        return result?.Success == true && result?.Valid == true;
+                    }
+                    else
+                    {
+                        OdiumConsole.Log("Auth", $"Validation request failed: {response.StatusCode} - {responseContent}", LogLevel.Error);
+                        return false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("Auth", $"Validation error: {ex.Message}", LogLevel.Error);
+                return false;
+            }
+        }
+
+        private void SaveCredentials(string email, string key)
+        {
+            try
+            {
+                var authData = new AuthData { Email = email, Key = key };
+                string jsonData = JsonConvert.SerializeObject(authData);
+
+                // Ensure directory exists
+                Directory.CreateDirectory(Path.GetDirectoryName(AUTH_FILE));
+
+                File.WriteAllText(AUTH_FILE, jsonData);
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("Auth", $"Failed to save credentials: {ex.Message}", LogLevel.Warning);
+            }
+        }
+
+        private void ShowErrorDialog(string title, string message)
+        {
+            try
+            {
+                // Try Visual Basic MsgBox first
+                Microsoft.VisualBasic.Interaction.MsgBox($"{message}", Microsoft.VisualBasic.MsgBoxStyle.Critical, $"Odium - {title}");
+            }
+            catch
+            {
+                // Fallback to console logging
+                OdiumConsole.Log("Error", $"{title}: {message}", LogLevel.Error);
+            }
+        }
+
+        private void ShowSuccessDialog(string title, string message)
+        {
+            try
+            {
+                // Try Visual Basic MsgBox first
+                Microsoft.VisualBasic.Interaction.MsgBox($"{message}", Microsoft.VisualBasic.MsgBoxStyle.Information, $"Odium - {title}");
+            }
+            catch
+            {
+                // Fallback to console logging
+                OdiumConsole.Log("Success", $"{title}: {message}", LogLevel.Info);
+            }
+        }
+
+        // Data classes for JSON serialization
+        private class AuthData
+        {
+            public string Email { get; set; }
+            public string Key { get; set; }
+        }
+
+        private class ValidationResponse
+        {
+            public bool Success { get; set; }
+            public bool Valid { get; set; }
+            public string Message { get; set; }
         }
 
         public override void OnApplicationStart()
         {
-                        HarmonyInstance = new HarmonyLib.Harmony("Odium.Harmony");
+            HarmonyInstance = new HarmonyLib.Harmony("Odium.Harmony");
 
             MelonCoroutines.Start(QM.WaitForUI());
             MelonCoroutines.Start(OnNetworkManagerInit());
@@ -161,8 +403,11 @@ namespace Odium
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
                         {
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
-                            IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1);
-    
+                            UnityEngine.Color rankColorT = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                            string hexColorT = PlayerRankTextDisplay.ColorToHex(rankColorT);
+                            string rankNameT = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                            IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1, hexColorT);
+
                             MainThreadDispatcher.Enqueue(() =>
                             {
                                 try
@@ -170,21 +415,21 @@ namespace Odium
                                     var httpClient = new System.Net.Http.HttpClient();
                                     string currentLocation = Current_World_id;
                                     string displayName = obj.prop_IUser_0.prop_String_1;
-            
-                                        if (!string.IsNullOrEmpty(currentLocation) && !string.IsNullOrEmpty(displayName))
+
+                                    if (!string.IsNullOrEmpty(currentLocation) && !string.IsNullOrEmpty(displayName))
+                                    {
+                                        var requestBody = new
                                         {
-                                            var requestBody = new
-                                            {
-                                                displayName = displayName,
-                                                location = currentLocation
-                                            };
+                                            displayName = displayName,
+                                            location = currentLocation
+                                        };
 
-                                            string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
-                                            var content = new System.Net.Http.StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+                                        string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
+                                        var content = new System.Net.Http.StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-                                            string apiUrl = "http://api.snoofz.net:3778/api/odium/vrc/setUserLocation";
-                                            var response = httpClient.PostAsync(apiUrl, content).Result;
-                
+                                        string apiUrl = "http://api.snoofz.net:3778/api/odium/vrc/setUserLocation";
+                                        var response = httpClient.PostAsync(apiUrl, content).Result;
+
                                         if (response.IsSuccessStatusCode)
                                         {
                                             OdiumConsole.Log("Odium", $"Updated location on API: {displayName} -> {currentLocation}");
@@ -205,7 +450,6 @@ namespace Odium
                         UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                         string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
                         string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
-                        DebugUI.LogMessage($"[<color=#77dd77>PlayerJoin</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
 
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
@@ -231,7 +475,10 @@ namespace Odium
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
                         {
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
-                            IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1);
+                            UnityEngine.Color rankColorT = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                            string hexColorT = PlayerRankTextDisplay.ColorToHex(rankColorT);
+                            string rankNameT = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
+                            IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1, hexColorT);
 
                             MainThreadDispatcher.Enqueue(() =>
                             {
@@ -410,6 +657,12 @@ namespace Odium
             }
         }
 
+        public override void OnGUI()
+        {
+            BoneESP.OnGUI();
+            BoxESP.OnGUI();
+        }
+
         public override void OnLevelWasLoaded(int level)
         {
             if (level == -1)
@@ -432,7 +685,6 @@ namespace Odium
 
         public override void OnSceneWasLoaded(int buildindex, string sceneName)
         {
-            // Call module loader for scene events
             OdiumModuleLoader.OnSceneWasLoaded(buildindex, sceneName);
             CursorLayerMod.CursorLayerMod.OnSceneWasLoaded(buildindex, sceneName);
             OnLoadedSceneManager.LoadedScene(buildindex, sceneName);
@@ -440,20 +692,12 @@ namespace Odium
 
         public override void OnSceneWasUnloaded(int buildindex, string sceneName)
         {
-            // Call module loader for scene events
             OdiumModuleLoader.OnSceneWasUnloaded(buildindex, sceneName);
         }
 
         public override void OnApplicationQuit()
         {
-            // Call module loader cleanup
             OdiumModuleLoader.OnApplicationQuit();
-        }
-
-        public override void OnGUI()
-        {
-            BoneESP.OnGUI();
-            BoxESP.OnGUI();
         }
 
         private static IEnumerator RamClearLoop()
@@ -492,48 +736,18 @@ namespace Odium
 
             if (Input.GetKeyDown(KeyCode.Minus))
             {
-                OdiumInputDialog.ShowInputDialog(
-                "Enter chat message",
-                (input, wasSubmitted) =>
-                {
-                    if (wasSubmitted)
-                    {
-                        try
-                        {
-                            MainThreadDispatcher.Enqueue(() =>
-                            {
-                                Chatbox.SendCustomChatMessage(input);
-                                OdiumInputDialog.CloseAllInputDialogs();
-                            });
-                        }
-                        catch (System.Exception ex)
-                        {
-                            OdiumInputDialog.CloseAllInputDialogs();
-                        }
-                    }
-                    else
-                    {
-                        OdiumConsole.Log("Input", "User cancelled input", LogLevel.Info);
-                        OdiumInputDialog.CloseAllInputDialogs();
-                    }
-                },
-                defaultValue: "Enter chat message",
-                placeholder: "Enter chat message"
-            );
+                DroneWrapper.DroneCrash();
             }
         }
 
         public override void OnFixedUpdate()
         {
-            // Call module loader fixed update
             OdiumModuleLoader.OnFixedUpdate();
         }
 
         public override void OnLateUpdate()
         {
-            // Call module loader late update
             OdiumModuleLoader.OnLateUpdate();
-
             SpyCamera.LateUpdate();
         }
     }

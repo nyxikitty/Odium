@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem.XR;
 using VRC.SDKBase;
 
 namespace Odium.Wrappers
@@ -68,16 +69,12 @@ namespace Odium.Wrappers
             return drones;
         }
 
-        public static void DroneCrash(VRC.SDK3.Components.VRCPickup pickup)
+        public static void DroneCrash()
         {
-            if (pickup != null && pickup.gameObject != null)
+            for (int i = 0; i < GetDrones().Count; i++)
             {
-                var controller = pickup.gameObject.GetComponent<VRC.PlayerDrone.DroneController>();
-                if (controller != null)
-                {
-                    controller.field_Private_Boolean_0 = true;
-                    controller.field_Private_Boolean_1 = true;
-                }
+                Networking.SetOwner(Networking.LocalPlayer, GetDrones()[i].gameObject);
+                GetDrones()[i].gameObject.transform.position = new Vector3(222222399999, 0);
             }
         }
 

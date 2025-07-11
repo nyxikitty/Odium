@@ -16,16 +16,16 @@ namespace Odium.QMPages
 
         public static List<QMNestedMenu> Initialize(Sprite buttonImage, Sprite halfButtonImage)
         {
-            tabMenu = new QMTabMenu("<color=#9101FF>             Odium</color>", "Welcome to <color=#B701FF>Odium</color>", SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\TabImage.png"));
+            tabMenu = new QMTabMenu("<color=#8d142b>Odium</color>", "Welcome to <color=#8d142b>Odium</color>", SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OdiumIcon.png"));
             tabMenu.MenuTitleText.alignment = TextAlignmentOptions.Center;
 
-            QMNestedMenu worldUtils = new QMNestedMenu(tabMenu, 1, 0, "World", "<color=#9101FF>                  World</color>", "World Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\WorldIcon.png"), buttonImage);
-            QMNestedMenu movementButton = new QMNestedMenu(tabMenu, 2, 0, "Movement", "<color=#9101FF>               Movement</color>", "Movement Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\MovementIcon.png"), buttonImage);
-            QMNestedMenu exploitsButton = new QMNestedMenu(tabMenu, 3, 0, "Exploits", "<color=#9101FF>                  Exploits</color>", "World Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), buttonImage);
-            QMNestedMenu settingsButton = new QMNestedMenu(tabMenu, 4, 3.5f, "Settings", "<color=#9101FF>               Settings</color>", "World Utility Functions", true, null, halfButtonImage);
-            QMNestedMenu appBotsButton = new QMNestedMenu(tabMenu, 1, 3.5f, "App Bots", "<color=#9101FF>               App Bots</color>", "App Bots Utility Functions", true, null, halfButtonImage);
-            QMNestedMenu visualsButton = new QMNestedMenu(tabMenu, 4, 0, "Visuals", "<color=#9101FF>               Visuals</color>", "Visuals Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\VisualIcon.png"), buttonImage);
-            QMNestedMenu gameHacks = new QMNestedMenu(tabMenu, 2.5f, 1, "Game Hacks", "<color=#9101FF>                  Game Hacks</color>", "World Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\WorldCheats.png"), buttonImage);
+            QMNestedMenu worldUtils = new QMNestedMenu(tabMenu, 1, 0, "<color=#8d142b>World</color>", "<color=#8d142b>World</color>", "World Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\WorldIcon.png"), buttonImage);
+            QMNestedMenu movementButton = new QMNestedMenu(tabMenu, 2, 0, "<color=#8d142b>Movement</color>", "<color=#8d142b>Movement</color>", "Movement Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\MovementIcon.png"), buttonImage);
+            QMNestedMenu exploitsButton = new QMNestedMenu(tabMenu, 3, 0, "<color=#8d142b>Exploits</color>", "<color=#8d142b>Exploits</color>", "World Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), buttonImage);
+            QMNestedMenu settingsButton = new QMNestedMenu(tabMenu, 4, 3.5f, "<color=#8d142b>Settings</color>", "<color=#8d142b>Settings</color>", "World Utility Functions", true, null, halfButtonImage);
+            QMNestedMenu appBotsButton = new QMNestedMenu(tabMenu, 1, 3.5f, "<color=#8d142b>App Bots</color>", "<color=#8d142b>App Bots</color>", "App Bots Utility Functions", true, null, halfButtonImage);
+            QMNestedMenu visualsButton = new QMNestedMenu(tabMenu, 4, 0, "<color=#8d142b>Visuals</color>", "<color=#8d142b>Visuals</color>", "Visuals Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\VisualIcon.png"), buttonImage);
+            QMNestedMenu gameHacks = new QMNestedMenu(tabMenu, 2.5f, 1, "<color=#8d142b>Game Hacks</color>", "<color=#8d142b>Game Hacks</color>", "World Utility Functions", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\WorldCheats.png"), buttonImage);
 
             List<QMNestedMenu> menus = new List<QMNestedMenu>
             {

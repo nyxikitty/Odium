@@ -12,6 +12,7 @@ namespace Odium.Patches
 {
     public class AwooochysPatchInitializer
     {
+        // I honestly dont know why this is here, its not even used
         public static string ModuleName = "HookManager";
         public static readonly HarmonyLib.Harmony instance = new HarmonyLib.Harmony("DeepCoreV2.ultrapatch");
         public static int pass = 0;

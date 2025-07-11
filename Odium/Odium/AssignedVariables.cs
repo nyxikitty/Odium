@@ -17,5 +17,6 @@ namespace Odium.Odium
         public static bool announceMutes = false;
         public static bool desktopPlayerList = true;
         public static bool boneESP = false;
+        public static bool autoDroneCrash = false;
     }
 }
