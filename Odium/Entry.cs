@@ -522,7 +522,7 @@ VRChat will now close so you can set up authentication.";
                         UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                         string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
                         string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
-                        DebugUI.LogMessage($"[<color=#77dd77>PlayerJoin</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
+                        InternalConsole.LogIntoConsole($"[<color=#77dd77>PlayerJoin</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
 
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
@@ -649,7 +649,7 @@ VRChat will now close so you can set up authentication.";
                         UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                         string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
                         string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
-                        DebugUI.LogMessage($"[<color=#ff6961>PlayerLeave</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
+                        InternalConsole.LogIntoConsole($"[<color=#ff6961>PlayerLeave</color>] -> <color={hexColor}>{player.field_Private_APIUser_0.displayName}</color>");
                         PlayerWrapper.Players.Remove(player);
                         BoneESP.OnPlayerLeft(player);
                         BoxESP.OnPlayerLeft(player);
@@ -674,9 +674,6 @@ VRChat will now close so you can set up authentication.";
 
             OdiumAssetBundleLoader.Initialize();
             PlayerRankTextDisplay.ClearAll();
-
-            OdiumPerformancePanel.Initialize();
-            OdiumPerformancePanel.ShowPerformancePanel();
 
             OdiumConsole.LogGradient("OnLevelWasLoaded", $"Level -> {level}");
 

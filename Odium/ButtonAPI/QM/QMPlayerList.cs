@@ -71,7 +71,7 @@ namespace Odium.ButtonAPI.QM
 
                 label.transform.SetParent(userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/Wing_Left"));
 
-                label.transform.localPosition = new Vector3(-450f, -400f, 0f);
+                label.transform.localPosition = new Vector3(-450f, -500f, 0f);
                 label.transform.localRotation = Quaternion.identity;
                 label.transform.localScale = new Vector3(1f, 1f, 1f);
 

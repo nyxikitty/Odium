@@ -10,35 +10,32 @@ using VRC.UI.Core.Styles;
 using Odium.QMPages;
 using VRC.Ui;
 using static System.Net.Mime.MediaTypeNames;
+using System.Net.Http;
+using System.Collections;
+using System.Threading.Tasks;
+using MelonLoader;
+using Odium.Threadding;
+using Newtonsoft.Json;
 
 namespace Odium.ButtonAPI.QM
 {
     internal class DebugUI
     {
-        // Constants
-        private const int MAX_LINES = 33;
-        private const int MAX_CHARACTERS_PER_LINE = 68;
-
         public static GameObject label;
         public static GameObject background;
         public static TextMeshProUGUI text;
-        public static List<string> messageList = new List<string>();
+        
+        // Cached values to prevent rapid updates
+        private static string cachedPing = "0";
+        private static string cachedFPS = "0";
+        private static string cachedBuild = "Unknown";
+        private static int cachedPlayerTags = 0;
+        private static int cachedOdiumUsers = 0;
+        
+        // Flag to prevent external updates
+        private static bool isUpdating = false;
 
-        private static readonly Dictionary<string, Color> keywordColors = new Dictionary<string, Color>
-        {
-            {"Join", Color.green},
-            {"Leave", Color.red},
-            {"+", Color.green},
-            {"-", Color.red},
-            {"Debug", Color.yellow},
-            {"Log", Color.magenta},
-            {"Photon", Color.magenta},
-            {"Warn", Color.cyan},
-            {"Error", Color.red},
-            {"RPC", Color.white}
-        };
-
-        public static void InitializeDebugMenu()
+        public static async void InitializeDebugMenu()
         {
             try
             {
@@ -64,7 +61,7 @@ namespace Odium.ButtonAPI.QM
 
                 label.transform.SetParent(userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/Wing_Right"));
 
-                label.transform.localPosition = new Vector3(450f, -400f, 0f);
+                label.transform.localPosition = new Vector3(400f, -525f, 0f);
                 label.transform.localRotation = Quaternion.identity;
                 label.transform.localScale = new Vector3(1f, 1f, 1f);
 
@@ -116,7 +113,7 @@ namespace Odium.ButtonAPI.QM
                     RectTransform rectTransform = text.GetComponent<RectTransform>();
                     if (rectTransform != null)
                     {
-                        rectTransform.anchoredPosition = new Vector2(180, 390f);
+                        rectTransform.anchoredPosition = new Vector2(295, 220f);
                         OdiumConsole.Log("DebugUI", $"Set anchored position to: {rectTransform.anchoredPosition}");
                     }
                 }
@@ -132,7 +129,7 @@ namespace Odium.ButtonAPI.QM
                 }
 
                 background.transform.localPosition = new Vector3(0f, 0f, 0f);
-                background.transform.localScale = new Vector3(0.6f, 10f, 1f);
+                background.transform.localScale = new Vector3(0.4f, 7.5f, 1f);
                 background.transform.localRotation = Quaternion.identity;
 
                 background.SetActive(true);
@@ -165,9 +162,7 @@ namespace Odium.ButtonAPI.QM
                 label.SetActive(true);
                 background.SetActive(true);
 
-                LogMessage("Debug UI Active!");
-                LogMessage("Join Player joined");
-                LogMessage("Error Test error message");
+                MelonCoroutines.Start(UpdateLoop());
 
                 OdiumConsole.Log("DebugUI", "Debug menu positioned correctly!");
             }
@@ -175,6 +170,95 @@ namespace Odium.ButtonAPI.QM
             {
                 OdiumConsole.Log("DebugUI", $"Failed to initialize debug menu: {ex.Message}");
             }
+        }
+
+        public static IEnumerator UpdateLoop()
+        {
+            while (true)
+            {
+                yield return new WaitForSecondsRealtime(5f);
+                yield return MelonCoroutines.Start(GetUserCountCoroutine());
+
+                isUpdating = true;
+                
+                cachedPing = ApiUtils.GetPing();
+                cachedFPS = ApiUtils.GetFPS();
+                cachedBuild = ApiUtils.GetBuild();
+                cachedPlayerTags = AssignedVariables.playerTagsCount;
+                cachedOdiumUsers = AssignedVariables.odiumUsersCount;
+                                
+                UpdateDisplay();
+                
+                isUpdating = false;
+            }
+        }
+
+        private static float lastUpdateTime = 0f;
+        private static readonly float UPDATE_INTERVAL = 1f;
+
+        private static void UpdateDisplay()
+        {
+            if (Time.time - lastUpdateTime < UPDATE_INTERVAL)
+                return;
+
+            lastUpdateTime = Time.time;
+
+            if (text != null)
+            {
+                text.text = $@"
+Subscription: <color=green>Active</color>
+
+Player Tags: <color=#e91f42>{cachedPlayerTags}</color>
+
+Odium Users: <color=#e91f42>{cachedOdiumUsers}</color>
+
+Duration: <color=#e91f42>Lifetime</color>
+
+Ping: <color=#e91f42>{cachedPing}</color>
+
+FPS: <color=#e91f42>{cachedFPS}</color>
+
+Build: <color=#e91f42>{cachedBuild}</color>
+
+Server: <color=#e91f42>Connected</color>
+
+Client: <color=#e91f42>Connected</color>
+
+Drones: <color=#e91f42>0</color>
+        ";
+            }
+        }
+
+        private static IEnumerator GetUserCountCoroutine()
+        {
+            var www = UnityEngine.Networking.UnityWebRequest.Get("https://snoofz.net/api/odium/users/list");
+
+            yield return www.SendWebRequest();
+
+            if (www.isDone)
+            {
+                if (string.IsNullOrEmpty(www.error))
+                {
+                    try
+                    {
+                        var jsonContent = www.downloadHandler.text;
+                        var users = JsonConvert.DeserializeObject<List<object>>(jsonContent);
+                        var userCount = users != null ? users.Count : 0;
+                        cachedOdiumUsers = userCount;
+                        AssignedVariables.odiumUsersCount = userCount;
+                    }
+                    catch (Exception)
+                    {
+                        cachedOdiumUsers = 0;
+                    }
+                }
+                else
+                {
+                    cachedOdiumUsers = 0;
+                }
+            }
+
+            www.Dispose();
         }
 
         public static void AdjustPosition(float x, float y, float z)
@@ -201,98 +285,6 @@ namespace Odium.ButtonAPI.QM
             {
                 background.transform.localScale = new Vector3(1f, 8f, 1f);
                 OdiumConsole.Log("DebugUI", "Background width adjusted");
-            }
-        }
-
-        public static string ColorToHex(Color color, bool includeHash = false)
-        {
-            try
-            {
-                string r = Mathf.RoundToInt(color.r * 255).ToString("X2");
-                string g = Mathf.RoundToInt(color.g * 255).ToString("X2");
-                string b = Mathf.RoundToInt(color.b * 255).ToString("X2");
-
-                return includeHash ? $"#{r}{g}{b}" : $"{r}{g}{b}";
-            }
-            catch (Exception ex)
-            {
-                OdiumConsole.Log("DebugUI", $"Failed to convert color to hex: {ex.Message}");
-                return includeHash ? "#FFFFFF" : "FFFFFF";
-            }
-        }
-
-        public static string FormatMessage(string message)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                OdiumConsole.Log("DebugUI", "Message is null or empty");
-                return string.Empty;
-            }
-
-            try
-            {
-                string formattedMessage = message;
-                if (message.Length > MAX_CHARACTERS_PER_LINE)
-                {
-                    int lastSpace = message.LastIndexOf(' ', MAX_CHARACTERS_PER_LINE);
-                    if (lastSpace == -1) lastSpace = MAX_CHARACTERS_PER_LINE;
-
-                    formattedMessage = message.Substring(0, lastSpace) + "\n" +
-                                     FormatMessage(message.Substring(lastSpace + 1));
-                }
-
-                // Apply color coding
-                foreach (var kvp in keywordColors)
-                {
-                    if (formattedMessage.Contains(kvp.Key))
-                    {
-                        string colorTag = $"<color={ColorToHex(kvp.Value)}>";
-                        formattedMessage = formattedMessage.Replace(kvp.Key, $"{colorTag}{kvp.Key}</color>");
-                    }
-                }
-
-                return formattedMessage + "\n";
-            }
-            catch (Exception ex)
-            {
-                OdiumConsole.Log("DebugUI", $"Failed to format message: {ex.Message}");
-                return message + "\n";
-            }
-        }
-
-        public static void LogMessage(string message)
-        {
-            try
-            {
-                if (messageList.Count >= MAX_LINES)
-                {
-                    messageList.RemoveAt(0);
-                }
-
-                messageList.Add($"{message}\n");
-                UpdateDisplay();
-            }
-            catch (Exception ex)
-            {
-                OdiumConsole.Log("DebugUI", $"Failed to log message: {ex.Message}");
-            }
-        }
-
-        private static void UpdateDisplay()
-        {
-            try
-            {
-                if (text == null)
-                {
-                    OdiumConsole.Log("DebugUI", "Text component is null, cannot update display");
-                    return;
-                }
-
-                text.text = string.Join("", messageList);
-            }
-            catch (Exception ex)
-            {
-                OdiumConsole.Log("DebugUI", $"Failed to update display: {ex.Message}");
             }
         }
     }

@@ -30,7 +30,7 @@ namespace Odium.Components
         {
             while (isEnabled)
             {
-                byte[] array = Convert.FromBase64String("AAAAAGfp+Lv2GRkA+MrI08yxTwBkxqwATk9LRU0wTk9LM00wTg==");
+                byte[] array = Convert.FromBase64String("QwYAAEWhESjzrD0A+PTUA4+bi+0LaUxtDTCBf75zt9hhu0RMSn256S+Z5UFCa3TTpz7Vn+dqmsK22eM1c3QV2OkEnvb+V/VMgfSsPQD49NQ67K6//enjQ8caLBaso6feWZyjV1q6GQ09u6w6bw91CJzBBv8QxGNMEa8S0ZHgYsGLpNZYHzhn03iA9aw9APj0cbv6WD3sl6rbmZYvfDksrFMhDuaBoQeYWfXNDDFik9egcVcvAPfocJkwpJ7vRPS5QgCfiNUdn/AGbIH2rD0A+PTUNLlMaIau6JuUEFFVYpv/yWOVDLSshOI1mmUB9ujkr8KEmIu3keB87DekOFGRmaNgu8TWVvVXjTLogPesPQD49HQVoW8ADMH2KouFZ8eZB3tv/2X+ld6MklOeIE7HE+cY+m1QEkeUgdM0Fc+vQi5ZI21+sAEnmaXx1WqB");
 
                 // This is for older packets, remove the first 4 bytes because they handle actorNr on the server now
                 byte[] trimmedArray = new byte[array.Length - 4];

@@ -9,6 +9,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections;
+using Odium.Wrappers;
+using Odium.Odium;
 
 namespace Odium.Components
 {
@@ -183,6 +185,11 @@ namespace Odium.Components
                 if (statsIndex == -1) return;
 
                 var statsData = playerStats[statsIndex];
+
+                if (userId == PlayerWrapper.LocalPlayer.field_Private_APIUser_0.id)
+                {
+                    AssignedVariables.playerTagsCount = statsData.tagPlates.Count;
+                }
 
                 if (statsData.tagPlates.Count > 1)
                 {
@@ -600,7 +607,7 @@ namespace Odium.Components
             }
         }
 
-        private static string GetPlayerPlatform(Player player)
+        public static string GetPlayerPlatform(Player player)
         {
             try
             {

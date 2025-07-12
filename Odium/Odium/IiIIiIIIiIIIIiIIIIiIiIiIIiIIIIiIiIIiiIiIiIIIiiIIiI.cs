@@ -34,7 +34,6 @@ namespace Odium.Odium
             OdiumNotificationLoader.Initialize();
             OdiumBottomNotification.Initialize();
             OdiumInputDialog.Initialize();
-            OdiumPerformancePanel.Initialize();
 
             string jsonData = $"{{\"userId\":\"{userId}\"}}";
 
@@ -174,8 +173,6 @@ namespace Odium.Odium
                     OdiumBottomNotification.ShowNotification($"<color=#e91f42>Welcome back</color>, <color={hexColor}>{username}</color><color=#e91f42>!</color>");
                     InternalConsole.LogIntoConsole($"<color=#e91f42>Welcome back</color>, <color={hexColor}>{username}</color><color=#e91f42>!</color>");
                     AssignedVariables.welcomeNotificationShown = true;
-
-                    OdiumPerformancePanel.ShowPerformancePanel();
 
                     string message = $"WORLD_JOINED:{PlayerWrapper.LocalPlayer.field_Private_APIUser_0.displayName}:{RoomManager.field_Internal_Static_ApiWorld_0.name}";
 

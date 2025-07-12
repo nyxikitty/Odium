@@ -154,7 +154,6 @@ namespace Odium.Components
                 PlayerDebugUI.InitializeDebugMenu();
 
                 SidebarListItemCloner.CreateSidebarItem("Odium Users");
-                OdiumPerformancePanel.ShowPerformancePanel();
             }
             catch (Exception ex)
             {
