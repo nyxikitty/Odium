@@ -233,7 +233,7 @@ namespace Odium.IUserPage.MM
                                                 string tagJson = Newtonsoft.Json.JsonConvert.SerializeObject(tagData);
                                                 var content = new System.Net.Http.StringContent(tagJson, System.Text.Encoding.UTF8, "application/json");
 
-                                                string addTagUrl = "https://snoofz.net/api/odium/tags/add";
+                                                string addTagUrl = "https://odiumvrc.com/api/odium/tags/add";
                                                 var tagResponse = httpClient.PostAsync(addTagUrl, content).Result;
 
                                                 if (tagResponse.IsSuccessStatusCode)
@@ -335,7 +335,7 @@ namespace Odium.IUserPage.MM
                                                 string tagJson = Newtonsoft.Json.JsonConvert.SerializeObject(tagData);
                                                 var content = new System.Net.Http.StringContent(tagJson, System.Text.Encoding.UTF8, "application/json");
 
-                                                string addTagUrl = "https://snoofz.net/api/odium/tags/remove";
+                                                string addTagUrl = "https://odiumvrc.com/odium/tags/remove";
                                                 var tagResponse = httpClient.PostAsync(addTagUrl, content).Result;
 
                                                 if (tagResponse.IsSuccessStatusCode)

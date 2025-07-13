@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon;
+using VRC.Udon.Common.Interfaces;
 
 namespace Odium.GameCheats
 {
@@ -44,7 +46,7 @@ namespace Odium.GameCheats
                 door.transform.Find("Door Anim/Hinge/Interact lock")?.GetComponent<UdonBehaviour>()?.Interact();
         }
 
-        static void SendGameEvent(string eventName) => GameObject.Find("Game Logic")?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
+        public static void SendGameEvent(string eventName) => GameObject.Find("Game Logic")?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
 
         public static void StartMatch() { SendGameEvent("Btn_Start"); SendGameEvent("SyncStartGame"); }
         public static void AbortMatch() => SendGameEvent("SyncAbort");
@@ -148,15 +150,21 @@ namespace Odium.GameCheats
             var setRedText = new Action<string, string>((path, text) => {
                 var comp = GameObject.Find(path).GetComponent<TextMeshProUGUI>();
                 comp.text = text;
-                comp.color = Color.red;
+                comp.color = UnityEngine.Color.red;
             });
 
             setRedText("Game Logic/Game Canvas/Pregame/Title Text", "HABIBI 4");
             setRedText("Game Logic/Game Canvas/Pregame/Author Text", "By Osama");
-            GameObject.Find("Game Logic/Game Canvas/Background Panel Border").GetComponent<Image>().color = Color.red;
+            GameObject.Find("Game Logic/Game Canvas/Background Panel Border").GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.red;
 
             GameObject.Find("Game Logic/Player HUD/Death HUD Anim").SetActive(false);
             GameObject.Find("Game Logic/Player HUD/Blind HUD Anim").SetActive(false);
+        }
+        public static void SendPatreonEvent(string eventName) => GameObject.Find("Patreon Credits")?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
+
+        public static void SendTargetedPatreonUdonEvent(VRC.Player plr, string evt)
+        {
+            UdonExtensions.SendUdon(GameObject.Find("Patreon Credits"), evt, plr);
         }
 
         public static bool knifeShieldbool;

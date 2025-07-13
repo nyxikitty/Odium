@@ -17,9 +17,22 @@ using UnhollowerBaseLib;
 using UnityEngine;
 using UnityEngine.UI;
 using VRC;
+using MelonLoader;
+using System.Collections;
 
 namespace Odium.Patches
 {
+    public struct PlayerActivityData
+    {
+        public int actorId;
+        public string userId;
+        public string displayName;
+        public float lastEvent1Time;
+        public float lastEvent12Time;
+        public bool hasCrashed;
+        public bool wasActive; // To track if they were ever active
+    }
+
     [HarmonyPatch(typeof(LoadBalancingClient))]
     public class PhotonPatches
     {
@@ -28,17 +41,225 @@ namespace Odium.Patches
         public static int blockedChatBoxMessages = 0;
         public static Dictionary<int, int> blockedMessagesCount = new Dictionary<int, int>();
         public static Dictionary<int, int> blockedUSpeakPacketCount = new Dictionary<int, int>();
-
         public static Dictionary<int, int> blockedUSpeakPackets = new Dictionary<int, int>();
-
         public static List<string> blockedUserIds = new List<string>();
         public static List<string> mutedUserIds = new List<string>();
+
+        // Crash Detection System
+        private static Dictionary<int, PlayerActivityData> playerActivityTracker = new Dictionary<int, PlayerActivityData>();
+        private static HashSet<string> crashedPlayerIds = new HashSet<string>();
+        private static object crashDetectionCoroutine;
+        private const float CRASH_TIMEOUT = 5.0f; // 5 seconds without events = crashed
+        private const float CHECK_INTERVAL = 1.0f; // Check every second
+
+        static PhotonPatches()
+        {
+            StartCrashDetection();
+        }
+
+        public static void StartCrashDetection()
+        {
+            if (crashDetectionCoroutine != null)
+            {
+                MelonCoroutines.Stop(crashDetectionCoroutine);
+            }
+            crashDetectionCoroutine = MelonCoroutines.Start(CrashDetectionLoop());
+            OdiumConsole.Log("CrashDetection", "Crash detection system started");
+        }
+
+        public static void StopCrashDetection()
+        {
+            if (crashDetectionCoroutine != null)
+            {
+                MelonCoroutines.Stop(crashDetectionCoroutine);
+                crashDetectionCoroutine = null;
+                OdiumConsole.Log("CrashDetection", "Crash detection system stopped");
+            }
+        }
+
+        private static IEnumerator CrashDetectionLoop()
+        {
+            while (true)
+            {
+                try
+                {
+                    CheckForCrashedPlayers();
+                    CleanupDisconnectedPlayers();
+                }
+                catch (Exception ex)
+                {
+                    OdiumConsole.Log("CrashDetection", $"Error in crash detection loop: {ex.Message}");
+                }
+
+                yield return new WaitForSeconds(CHECK_INTERVAL);
+            }
+        }
+
+        private static void CheckForCrashedPlayers()
+        {
+            float currentTime = Time.time;
+            var keysToCheck = new List<int>(playerActivityTracker.Keys);
+
+            foreach (int actorId in keysToCheck)
+            {
+                var playerData = playerActivityTracker[actorId];
+
+                if (!playerData.wasActive || playerData.hasCrashed)
+                    continue;
+
+                float timeSinceEvent1 = currentTime - playerData.lastEvent1Time;
+                float timeSinceEvent12 = currentTime - playerData.lastEvent12Time;
+
+                if (timeSinceEvent1 > CRASH_TIMEOUT && timeSinceEvent12 > CRASH_TIMEOUT)
+                {
+                    playerData.hasCrashed = true;
+                    playerActivityTracker[actorId] = playerData;
+
+                    if (!string.IsNullOrEmpty(playerData.userId))
+                    {
+                        crashedPlayerIds.Add(playerData.userId);
+                        OdiumConsole.LogGradient("CrashDetection",
+                            $"Player CRASHED: {playerData.displayName} (Actor: {actorId}, UserID: {playerData.userId})");
+
+                        InternalConsole.LogIntoConsole(
+                            $"{playerData.displayName} has crashed (no events for {CRASH_TIMEOUT}s)"
+                        );
+                    }
+                }
+            }
+        }
+
+        private static void CleanupDisconnectedPlayers()
+        {
+            try
+            {
+                if (PlayerManager.prop_PlayerManager_0?.field_Private_List_1_Player_0 == null)
+                    return;
+
+                var currentPlayers = PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray()
+                    .Where(p => p?.field_Private_APIUser_0?.id != null)
+                    .Select(p => p.field_Private_APIUser_0.id)
+                    .ToHashSet();
+
+                var crashedToRemove = crashedPlayerIds.Where(userId => !currentPlayers.Contains(userId)).ToList();
+                foreach (string userId in crashedToRemove)
+                {
+                    crashedPlayerIds.Remove(userId);
+                    OdiumConsole.LogGradient("CrashDetection", $"Removed disconnected crashed player: {userId}");
+                }
+
+                var actorIdsToRemove = playerActivityTracker.Keys
+                    .Where(actorId =>
+                    {
+                        var playerData = playerActivityTracker[actorId];
+                        return !string.IsNullOrEmpty(playerData.userId) && !currentPlayers.Contains(playerData.userId);
+                    })
+                    .ToList();
+
+                foreach (int actorId in actorIdsToRemove)
+                {
+                    playerActivityTracker.Remove(actorId);
+                }
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("CrashDetection", $"Error in cleanup: {ex.Message}");
+            }
+        }
+
+        private static void UpdatePlayerActivity(int actorId, int eventCode)
+        {
+            try
+            {
+                VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(actorId);
+
+                if (!playerActivityTracker.ContainsKey(actorId))
+                {
+                    var newPlayerData = new PlayerActivityData
+                    {
+                        actorId = actorId,
+                        userId = player?.field_Private_APIUser_0?.id ?? "",
+                        displayName = player?.field_Private_APIUser_0?.displayName ?? "Unknown",
+                        lastEvent1Time = 0f,
+                        lastEvent12Time = 0f,
+                        hasCrashed = false,
+                        wasActive = false
+                    };
+                    playerActivityTracker[actorId] = newPlayerData;
+                }
+
+                var playerData = playerActivityTracker[actorId];
+                float currentTime = Time.time;
+
+                if (eventCode == 1)
+                {
+                    playerData.lastEvent1Time = currentTime;
+                    playerData.wasActive = true;
+                }
+                else if (eventCode == 12)
+                {
+                    playerData.lastEvent12Time = currentTime;
+                    playerData.wasActive = true;
+                }
+
+                if (playerData.hasCrashed && playerData.wasActive)
+                {
+                    playerData.hasCrashed = false;
+                    if (!string.IsNullOrEmpty(playerData.userId))
+                    {
+                        crashedPlayerIds.Remove(playerData.userId);
+                        OdiumConsole.LogGradient("CrashDetection",
+                            $"Player RECOVERED: {playerData.displayName} is active again");
+                    }
+                }
+
+                playerActivityTracker[actorId] = playerData;
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("CrashDetection", $"Error updating player activity: {ex.Message}");
+            }
+        }
+
+        public static bool HasPlayerCrashed(string userId)
+        {
+            return !string.IsNullOrEmpty(userId) && crashedPlayerIds.Contains(userId);
+        }
+
+        public static string GetCrashStatusInfo()
+        {
+            var activePlayers = playerActivityTracker.Values.Where(p => p.wasActive && !p.hasCrashed).Count();
+            var crashedCount = crashedPlayerIds.Count;
+            return $"Active: {activePlayers}, Crashed: {crashedCount}";
+        }
+
+        public static void MarkPlayerAsCrashed(string userId)
+        {
+            if (!string.IsNullOrEmpty(userId))
+            {
+                crashedPlayerIds.Add(userId);
+            }
+        }
+
+        public static void UnmarkPlayerAsCrashed(string userId)
+        {
+            if (!string.IsNullOrEmpty(userId))
+            {
+                crashedPlayerIds.Remove(userId);
+            }
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch("OnEvent")]
         static bool OnEvent(LoadBalancingClient __instance, EventData param_1)
         {
             var eventCode = param_1.Code;
+
+            if (eventCode == 1 || eventCode == 12)
+            {
+                UpdatePlayerActivity(param_1.sender, eventCode);
+            }
+
             switch (eventCode)
             {
                 case 1:
@@ -57,7 +278,7 @@ namespace Odium.Patches
 
                         blockedUSpeakPacketCount[param_1.sender]++;
                         blockedUSpeakPackets[param_1.sender]++;
-                        
+
                         if (blockedUSpeakPacketCount[param_1.sender] == 1)
                         {
                             VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
@@ -72,7 +293,8 @@ namespace Odium.Patches
                             blockedUSpeakPackets[param_1.sender] = 0;
                         }
                         return false;
-                    } else
+                    }
+                    else
                     {
                         return true;
                     }

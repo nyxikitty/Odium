@@ -23,6 +23,7 @@ namespace Odium.ButtonAPI.QM
         // Constants
         private const int MAX_LINES = 33;
         private const int MAX_CHARACTERS_PER_LINE = 68;
+        private const int MAX_DISPLAYED_USERS = 38; // New constant for user limit
 
         public static GameObject label;
         public static GameObject background;
@@ -307,11 +308,23 @@ namespace Odium.ButtonAPI.QM
                     if (PlayerManager.prop_PlayerManager_0?.field_Private_List_1_Player_0 != null &&
                         PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.Count > 0)
                     {
-                        int playerCount = PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.Count;
-                        displayText += $"<color=#00FF00>Players Online: {playerCount}</color>\n\n";
+                        int totalPlayerCount = PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.Count;
+                        int displayedCount = Math.Min(totalPlayerCount, MAX_DISPLAYED_USERS);
 
-                        foreach (var player in PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0)
+                        // Show total count and if there are more players than displayed
+                        if (totalPlayerCount > MAX_DISPLAYED_USERS)
                         {
+                            displayText += $"<color=#00FF00>Players Online: {totalPlayerCount}</color> <color=#FFFF00>(Showing {displayedCount}/{totalPlayerCount})</color>\n\n";
+                        }
+                        else
+                        {
+                            displayText += $"<color=#00FF00>Players Online: {totalPlayerCount}</color>\n\n";
+                        }
+
+                        // Display only the first MAX_DISPLAYED_USERS players
+                        for (int i = 0; i < displayedCount; i++)
+                        {
+                            var player = PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0[i];
                             if (player?.field_Private_APIUser_0 != null)
                             {
                                 string platform = PlayerRankTextDisplay.GetPlayerPlatform(player);

@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Collections;
 using Odium.Wrappers;
 using Odium.Odium;
+using Odium.Patches; // Add this for crash detection
 
 namespace Odium.Components
 {
@@ -46,7 +47,7 @@ namespace Odium.Components
     {
         private static List<NameplateData> playerStats = new List<NameplateData>();
         private static HttpClient httpClient = new HttpClient();
-        private static string API_BASE = "https://snoofz.net/api/odium/tags";
+        private static string API_BASE = "https://odiumvrc.com/api/odium/tags";
         private static Dictionary<string, List<string>> tagCache = new Dictionary<string, List<string>>();
 
         private static bool autoRefreshEnabled = true;
@@ -212,9 +213,30 @@ namespace Odium.Components
                     statsData.statsComponents.RemoveRange(1, statsData.statsComponents.Count - 1);
                 }
 
+                // Check if player has crashed and add it as the first tag
+                bool playerCrashed = PhotonPatches.HasPlayerCrashed(userId);
+                int tagStartIndex = 1;
+
+                if (playerCrashed)
+                {
+                    var crashTagTransform = CreateStatsPlate(quickStats, nameplateGroup, "Crash Tag", 1);
+                    if (crashTagTransform != null)
+                    {
+                        var crashTagComponent = SetupStatsComponent(crashTagTransform);
+                        if (crashTagComponent != null)
+                        {
+                            crashTagComponent.text = "<color=#e91f42>CRASHED</color>";
+                            statsData.statsComponents.Add(crashTagComponent);
+                            statsData.tagPlates.Add(crashTagTransform);
+                        }
+                    }
+                    tagStartIndex = 2; // Start user tags after crash tag
+                }
+
+                // Add user tags from API
                 for (int i = 0; i < userTags.Count; i++)
                 {
-                    var tagStatsTransform = CreateStatsPlate(quickStats, nameplateGroup, $"Tag Stats {i}", i + 1);
+                    var tagStatsTransform = CreateStatsPlate(quickStats, nameplateGroup, $"Tag Stats {i}", tagStartIndex + i);
                     if (tagStatsTransform != null)
                     {
                         var tagStatsComponent = SetupStatsComponent(tagStatsTransform);
@@ -230,7 +252,8 @@ namespace Odium.Components
                 statsData.userTags = userTags;
                 playerStats[statsIndex] = statsData;
 
-                MelonLogger.Msg($"Applied {userTags.Count} tags for player: {userId}");
+                int totalTags = userTags.Count + (playerCrashed ? 1 : 0);
+                MelonLogger.Msg($"Applied {totalTags} tags for player: {userId} (Crashed: {playerCrashed})");
             }
             catch (System.Exception ex)
             {
@@ -468,6 +491,37 @@ namespace Odium.Components
                         continue;
                     }
 
+                    // Check if crash status has changed and refresh tags if needed
+                    bool playerCurrentlyCrashed = PhotonPatches.HasPlayerCrashed(player.field_Private_APIUser_0.id);
+                    bool hasCrashTag = statsData.tagPlates.Count > 1 &&
+                                      statsData.statsComponents.Count > 1 &&
+                                      statsData.statsComponents[1] != null &&
+                                      statsData.statsComponents[1].text.Contains("CRASHED");
+
+                    if (playerCurrentlyCrashed != hasCrashTag)
+                    {
+                        // Crash status changed, refresh the tags
+                        var nameplateContainer = player._vrcplayer.field_Public_GameObject_0;
+                        var playerNameplateCanvas = nameplateContainer.transform.FindChild("PlayerNameplate/Canvas");
+                        if (playerNameplateCanvas != null)
+                        {
+                            var nameplateGroup = playerNameplateCanvas.FindChild("NameplateGroup/Nameplate");
+                            if (nameplateGroup != null)
+                            {
+                                var quickStats = nameplateGroup.FindChild("Contents/Quick Stats");
+                                if (quickStats != null)
+                                {
+                                    // Use cached tags if available, otherwise use empty list for immediate update
+                                    List<string> cachedTags = tagCache.ContainsKey(player.field_Private_APIUser_0.id)
+                                        ? tagCache[player.field_Private_APIUser_0.id]
+                                        : statsData.userTags ?? new List<string>();
+
+                                    ApplyTagsToNameplate(player.field_Private_APIUser_0.id, cachedTags, quickStats, nameplateGroup);
+                                }
+                            }
+                        }
+                    }
+
                     UpdateSinglePlayerStats(player, statsData);
                 }
             }
@@ -515,7 +569,7 @@ namespace Odium.Components
 
                     if (player.field_Private_VRCPlayerApi_0?.isMaster == true)
                     {
-                        displayComponents.Add("[<color=#FFD700>👑</color>]");
+                        displayComponents.Add("[<color=#FFD700>M</color>]");
                     }
 
                     if (IsFriend(player))
@@ -630,9 +684,9 @@ namespace Odium.Components
             switch (platform?.ToLower())
             {
                 case "standalonewindows":
-                    return "[<color=#00BFFF>🖥️</color>]";
+                    return "[<color=#00BFFF>PC</color>]";
                 case "android":
-                    return "[<color=#32CD32>📱</color>]";
+                    return "[<color=#32CD32>Q</color>]";
                 case "ios":
                     return "[<color=#FF69B4>iOS</color>]";
                 default:
