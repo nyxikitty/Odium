@@ -304,26 +304,6 @@ namespace Odium.Patches
                         return true;
                     }
                     break;
-                case 12:
-                    if (Bot.movementMimic && Bot.movementMimicActorNr == param_1.sender)
-                    {
-                        PhotonExtensions.OpRaiseEvent(12, param_1.customData, new RaiseEventOptions
-                        {
-                            field_Public_EventCaching_0 = EventCaching.DoNotCache,
-                            field_Public_ReceiverGroup_0 = ReceiverGroup.Others
-                        }, default(SendOptions));
-                        return false;
-                    }
-                    break;
-                case 11:
-                    if (BlockUdon)
-                    {
-                        InternalConsole.LogIntoConsole(
-                            $"<color=#31BCF0>[Udon]:</color> Event <color=#00AAFF>blocked</color>!"
-                        );
-                        return false;
-                    }
-                    break;
                 case 18:
                     var dictionary = param_1.Parameters[param_1.CustomDataKey].Cast<Il2CppSystem.Collections.Generic.Dictionary<byte, Il2CppSystem.Object>>();
                     int viewId = dictionary[2].Unbox<int>();
