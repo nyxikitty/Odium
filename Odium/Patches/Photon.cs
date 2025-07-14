@@ -24,6 +24,7 @@ using System.Windows.Forms;
 using static Il2CppSystem.Diagnostics.Tracing.EventSource;
 using VRC.SDK3.Network;
 using VRC.Udon;
+using VampClient.Api;
 
 namespace Odium.Patches
 {
@@ -56,6 +57,7 @@ namespace Odium.Patches
         private static object crashDetectionCoroutine;
         private const float CRASH_TIMEOUT = 5.0f; 
         private const float CHECK_INTERVAL = 1.0f;
+        public static Sprite LogoIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\OdiumIcon.png");
 
         static PhotonPatches()
         {
@@ -338,11 +340,15 @@ namespace Odium.Patches
 
                                     if ((currentTime - lastLogTimes[playerName]).TotalSeconds >= 15)
                                     {
-                                        InternalConsole.LogIntoConsole($"Crash attempt blocked from -> {playerName} (Total: {attemptCount})", "[ListPatrons]");
+                                        InternalConsole.LogIntoConsole($"Prevented: {playerName} | Count: {attemptCount}", "[ListPatrons]");
+                                        ToastBase.Toast("Odium Protection", $"Potentially harmful event blocked from user '{playerName}'", LogoIcon, 5);
                                         lastLogTimes[playerName] = currentTime;
                                     }
 
                                     return false;
+                                } else
+                                {
+                                    return true;
                                 }
                             }
                         }
