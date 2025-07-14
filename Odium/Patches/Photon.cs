@@ -273,6 +273,7 @@ namespace Odium.Patches
 
                     VRC.Player plr = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
 
+                    // This works fine dont touch
                     if ((int)USpeakPacketHandler.ParseUSpeakPacket(e).gain > 90)
                     {
                         if (!blockedUSpeakPacketCount.ContainsKey(param_1.sender))
