@@ -136,20 +136,24 @@ namespace Odium.Components
                     MediaControls.SpotifySkip();
                 });
 
+                // Center Image
                 QMMainIconButton.CreateImage(LogoIcon, new Vector3(-150, -50), new Vector3(2.5f, 2.5f), false);
 
                 Transform header = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1");
                 header.transform.localPosition = new Vector3(125.6729f, 1024f, 0f);
 
+                // Right container
                 Transform itemContainer = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
                 Transform iconButton = itemContainer.Find("Button_QM_Report");
 
                 iconButton.gameObject.SetActive(false);
 
+                // Left container
                 Transform itemContainer2 = AssignedVariables.userInterface.transform.Find("Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_Dashboard/Header_H1/RightItemContainer");
                 Transform iconButton2 = itemContainer.Find("Button_QM_Expand");
 
                 iconButton2.gameObject.SetActive(false);
+
                 DebugUI.InitializeDebugMenu();
                 PlayerDebugUI.InitializeDebugMenu();
 

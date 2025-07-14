@@ -19,6 +19,11 @@ using UnityEngine.UI;
 using VRC;
 using MelonLoader;
 using System.Collections;
+using Photon.Pun;
+using System.Windows.Forms;
+using static Il2CppSystem.Diagnostics.Tracing.EventSource;
+using VRC.SDK3.Network;
+using VRC.Udon;
 
 namespace Odium.Patches
 {
@@ -30,7 +35,7 @@ namespace Odium.Patches
         public float lastEvent1Time;
         public float lastEvent12Time;
         public bool hasCrashed;
-        public bool wasActive; // To track if they were ever active
+        public bool wasActive;
     }
 
     [HarmonyPatch(typeof(LoadBalancingClient))]
@@ -44,13 +49,13 @@ namespace Odium.Patches
         public static Dictionary<int, int> blockedUSpeakPackets = new Dictionary<int, int>();
         public static List<string> blockedUserIds = new List<string>();
         public static List<string> mutedUserIds = new List<string>();
+        private static Dictionary<string, DateTime> lastCrashLogTime = new Dictionary<string, DateTime>();
 
-        // Crash Detection System
         private static Dictionary<int, PlayerActivityData> playerActivityTracker = new Dictionary<int, PlayerActivityData>();
         private static HashSet<string> crashedPlayerIds = new HashSet<string>();
         private static object crashDetectionCoroutine;
-        private const float CRASH_TIMEOUT = 5.0f; // 5 seconds without events = crashed
-        private const float CHECK_INTERVAL = 1.0f; // Check every second
+        private const float CRASH_TIMEOUT = 5.0f; 
+        private const float CHECK_INTERVAL = 1.0f;
 
         static PhotonPatches()
         {
@@ -251,7 +256,7 @@ namespace Odium.Patches
 
         [HarmonyPrefix]
         [HarmonyPatch("OnEvent")]
-        static bool OnEvent(LoadBalancingClient __instance, EventData param_1)
+        static bool OnEvent(LoadBalancingClient __instance, ExitGames.Client.Photon.EventData param_1)
         {
             var eventCode = param_1.Code;
 
@@ -268,7 +273,7 @@ namespace Odium.Patches
 
                     VRC.Player plr = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
 
-                    if (base64.Contains("ABOT0tFTTBOT0szTTBOCw=="))
+                    if ((int)USpeakPacketHandler.ParseUSpeakPacket(e).gain > 90)
                     {
                         if (!blockedUSpeakPacketCount.ContainsKey(param_1.sender))
                         {
@@ -317,6 +322,48 @@ namespace Odium.Patches
                             $"<color=#31BCF0>[Udon]:</color> Event <color=#00AAFF>blocked</color>!"
                         );
                         return false;
+                    }
+                    break;
+                case 18:
+                    var dictionary = param_1.Parameters[param_1.CustomDataKey].Cast<Il2CppSystem.Collections.Generic.Dictionary<byte, Il2CppSystem.Object>>();
+                    int viewId = dictionary[2].Unbox<int>();
+                    var eventType = dictionary[0].Unbox<byte>();
+                    if (eventType == 2)
+                    {
+                        PhotonView photonView = PhotonView.Method_Public_Static_PhotonView_Int32_0(viewId);
+                        UdonBehaviour udonBehaviour = photonView.gameObject.GetComponent<UdonBehaviour>();
+                        if (udonBehaviour != null)
+                        {
+                            string behaviourName = udonBehaviour.gameObject.name;
+                            uint eventHash = dictionary[1].Unbox<uint>();
+                            if (udonBehaviour.TryGetEntrypointNameFromHash(eventHash, out string entryPointName))
+                            {
+                                if (entryPointName == "ListPatrons" && behaviourName == "Patreon Credits")
+                                {
+                                    VRC.Player vrcPlayer = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
+                                    string playerName = vrcPlayer.field_Private_APIUser_0.displayName;
+                                    DateTime currentTime = DateTime.Now;
+
+                                    bool shouldLog = false;
+                                    if (!lastCrashLogTime.ContainsKey(playerName))
+                                    {
+                                        shouldLog = true;
+                                    }
+                                    else if ((currentTime - lastCrashLogTime[playerName]).TotalSeconds >= 15)
+                                    {
+                                        shouldLog = true;
+                                    }
+
+                                    if (shouldLog)
+                                    {
+                                        InternalConsole.LogIntoConsole($"Crash attempt blocked from -> {playerName}", "[ListPatrons]");
+                                        lastCrashLogTime[playerName] = currentTime;
+                                    }
+
+                                    return false;
+                                }
+                            }
+                        }
                     }
                     break;
                 case 43:

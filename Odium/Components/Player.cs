@@ -1,4 +1,5 @@
 ﻿using Odium.Components;
+using Odium.Odium;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,11 @@ namespace Odium.Wrappers
 {
     public static class PlayerWrapper
     {
-        public static List<VRC.Player> Players = new List<VRC.Player>();
         public static VRC.Player LocalPlayer = null;
         public static int ActorId = 0;
-        public static VRC.Player[] GetAllPlayers() => PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray();
+        public static List<VRC.Player> GetAllPlayers() => PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray().ToList();
+        public static List<VRC.Player> Players = new List<VRC.Player>();
+
         public static int LocalPlayerActorNr => LocalPlayer.prop_Player_1.prop_Int32_0;
 
         public static UnityEngine.Vector3 GetPosition(VRC.Player player)
@@ -47,6 +49,24 @@ namespace Odium.Wrappers
             var TargetPos = player.field_Private_VRCPlayerApi_0.GetBoneTransform(bone);
             return TargetPos;
         }
+
+        public static void QuickSpoof()
+        {
+            if (AssignedVariables.adminSpoof)
+            {
+                string displayName = Networking.LocalPlayer.displayName;
+                string customName = "eZbake";
+                VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRCPlayerApi_0.displayName = customName;
+                OdiumConsole.Log("OwnerSpoof", "Spoofed as: " + displayName + " | CustomName: " + customName);
+                if (VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRCPlayerApi_0.displayName == customName)
+                {
+                    OdiumConsole.Log("QuickSpoof", "Spoofing successful!");
+                    return;
+                }
+                OdiumConsole.Log("QuickSpoof", "Spoofing failed. DisplayName mismatch.");
+            }
+        }
+
 
         public static int GetViewID()
         {

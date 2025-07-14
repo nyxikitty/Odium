@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Odium.ButtonAPI.QM;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,5 +21,7 @@ namespace Odium.Odium
         public static bool autoDroneCrash = false;
         public static int playerTagsCount = 0;
         public static int odiumUsersCount = 0;
+        public static bool adminSpoof = false;
+        public static QMNestedMenu playerList;
     }
 }

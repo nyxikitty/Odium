@@ -32,19 +32,22 @@ namespace Odium.ButtonAPI.QM
         // Use your own GetAllPlayers right here cause I put mine on here
         public static VRC.Player GetPlayerByDisplayName(string name)
         {
-            VRC.Player vrcPlayer = PlayerWrapper.Players.Find(plr => plr.field_Private_APIUser_0.displayName == name);
+            VRC.Player vrcPlayer = PlayerWrapper.GetAllPlayers().Find(plr => plr.field_Private_APIUser_0.displayName == name);
             return vrcPlayer;
         }
 
         public static VRC.Player GetIUser()
         {
-            var textObject = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_SelectedUser_Local/ScrollRect/Viewport/VerticalLayoutGroup/UserProfile_Compact/PanelBG/Info/Text_Username_NonFriend");
+            var textObject = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_SelectedUser_Local/ScrollRect/Viewport/VerticalLayoutGroup/UserProfile_Compact/PanelBG/Info/Text_Username_Friend");
+            textObject.SetActive(true);
             if (textObject == null) return null;
 
             var textComponent = textObject.GetComponent<TextMeshProUGUIEx>();
             if (textComponent == null) return null;
 
-            return GetPlayerByDisplayName(textComponent.text);
+            VRC.Player plr = GetPlayerByDisplayName(textComponent.text);
+            textObject.SetActive(false);
+            return plr;
         }
 
         public static string GetMMIUser()

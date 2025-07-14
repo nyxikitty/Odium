@@ -25,6 +25,9 @@ using VRC.Ui;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
+using Odium.QMPages;
+using VRC.Udon;
+using Odium.GameCheats;
 
 
 [assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
@@ -40,6 +43,8 @@ namespace Odium
         private float lastStatsUpdate = 0f;
         private const float STATS_UPDATE_INTERVAL = 1f;
         public static int loadIndex = 0;
+        public static Sprite buttonImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ButtonBackground.png");
+
         public static string Current_World_id { get { return RoomManager.prop_ApiWorldInstance_0.id; } }
 
         // Authentication related fields
@@ -68,6 +73,7 @@ namespace Odium
 
                 BoneESP.SetEnabled(false);
                 BoxESP.SetEnabled(false);
+                PunchSystem.Initialize();
 
                 CoroutineManager.Init();
 
@@ -402,6 +408,7 @@ VRChat will now close so you can set up authentication.";
 
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
                         {
+                            PlayerWrapper.QuickSpoof();
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
                             UnityEngine.Color rankColorT = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                             string hexColorT = PlayerRankTextDisplay.ColorToHex(rankColorT);
@@ -450,7 +457,6 @@ VRChat will now close so you can set up authentication.";
                         UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                         string hexColor = PlayerRankTextDisplay.ColorToHex(rankColor);
                         string rankName = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
-
                         PlayerWrapper.Players.Add(player);
                         BoneESP.OnPlayerJoined(player);
                         BoxESP.OnPlayerJoined(player);
@@ -472,14 +478,25 @@ VRChat will now close so you can set up authentication.";
                         VRCPlayerApi vrcPlayerApi = PlayerWrapper.GetLocalPlayerAPIUser(obj.prop_IUser_0.prop_String_0);
                         VRC.Player player = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
 
+                        if (RoomManager.field_Internal_Static_ApiWorld_0.id == "wrld_858dfdfc-1b48-4e1e-8a43-f0edc611e5fe")
+                        {
+                            if (obj.prop_IUser_0.prop_String_1.Contains("TheVictor"))
+                            {
+                                Patches.PhotonPatches.BlockUdon = true;
+                                for (int i = 0; i < 250; i++) Murder4Utils.SendTargetedPatreonEvent(player, "ListPatrons");
+
+                                Patches.PhotonPatches.BlockUdon = false;
+                            }
+                        }
+
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
                         {
+                            PlayerWrapper.QuickSpoof();
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
                             UnityEngine.Color rankColorT = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                             string hexColorT = PlayerRankTextDisplay.ColorToHex(rankColorT);
                             string rankNameT = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                             IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1, hexColorT);
-
                             MainThreadDispatcher.Enqueue(() =>
                             {
                                 try
@@ -606,7 +623,7 @@ VRChat will now close so you can set up authentication.";
                                     string type = "user-leave";
 
                                     System.Threading.Thread.Sleep(1000);
-                                    var players = PlayerWrapper.GetAllPlayers();
+                                    var players = PlayerWrapper.GetAllPlayers().ToArray();
                                     if (players.Length == 0)
                                     {
                                         type = "world-leave";

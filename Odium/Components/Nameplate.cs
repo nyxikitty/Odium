@@ -631,7 +631,6 @@ namespace Odium.Components
 
                     playerStats.RemoveAt(statsIndex);
 
-                    MelonLogger.Msg($"Cleaned up stats for user: {userId}");
                 }
             }
             catch (System.Exception ex)
@@ -791,16 +790,13 @@ namespace Odium.Components
 
                     devCircle.gameObject.SetActive(true);
 
-                    MelonLogger.Msg($"Changed Dev Circle sprite with {rank} coloring");
                 }
                 else
                 {
-                    MelonLogger.Warning("Dev Circle does not have an ImageThreeSlice component");
                 }
             }
             else
             {
-                MelonLogger.Warning("Could not find Dev Circle");
             }
         }
 

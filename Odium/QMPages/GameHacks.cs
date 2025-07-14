@@ -5,11 +5,13 @@ using Odium.GameCheats;
 using Odium.Odium;
 using Odium.Wrappers;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using VRC;
 using VRC.SDKBase;
 
 namespace Odium.QMPages
@@ -35,30 +37,39 @@ namespace Odium.QMPages
 
             new QMSingleButton(exploits, 2.5f, 1.5f, "Crash All", () =>
             {
-                Patches.PhotonPatches.BlockUdon = true;
-                PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray().ToList().ForEach(player =>
+                try
                 {
-                    if (player.field_Private_APIUser_0.displayName == Networking.LocalPlayer.displayName) return;
-                    if (player.field_Private_APIUser_0.isFriend) return;
-                    for (int i = 0; i < 50; i++) Murder4Utils.SendTargetedPatreonUdonEvent(player, "ListPatrons");
-                });
+                    Patches.PhotonPatches.BlockUdon = true;
+                    var localPlayerName = Networking.LocalPlayer.displayName;
+                    var targets = PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray()
+                        .Where(player =>
+                            player != null &&
+                            player.field_Private_APIUser_0 != null &&
+                            player.field_Private_APIUser_0.displayName != localPlayerName &&
+                            !player.field_Private_APIUser_0.isFriend)
+                        .ToList();
 
-                Patches.PhotonPatches.BlockUdon = false;
-            }, "Brings death to all players", false, WinIcon, buttonImage);
+                    MelonCoroutines.Start(CrashPlayersWithDelay(targets));
+                }
+                catch (Exception ex)
+                {
+                    Patches.PhotonPatches.BlockUdon = false;
+                }
+            }, "Brings death to all players", false, KillAllIcon, buttonImage);
 
-            new QMSingleButton(winTriggers, 2, 2, "Murder", () =>
+        new QMSingleButton(winTriggers, 2, 2, "Murder", () =>
             {
-                Murder4Utils.MurderWin();
+                Murder4Utils.TriggerMurdererWin();
             }, "Brings death to all players", false, WinIcon, buttonImage);
 
             new QMSingleButton(winTriggers, 3, 2, "Bystanders", () =>
             {
-                Murder4Utils.BystandersWin();
+                Murder4Utils.TriggerBystanderWin();
             }, "Brings death to all players", false, WinIcon, buttonImage);
 
             new QMSingleButton(playerActions, 1, 0, "Kill All", () =>
             {
-                Murder4Utils.KillAll();
+                Murder4Utils.ExecuteAll();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(playerActions, 2, 0, "Blind All", () =>
@@ -68,81 +79,81 @@ namespace Odium.QMPages
 
             new QMSingleButton(playerActions, 3, 0, "Become Murderer", () =>
             {
-                Murder4Utils.BeARole(PlayerWrapper.LocalPlayer.field_Private_APIUser_0.displayName, "SyncAssignM");
+                Murder4Utils.AssignRole(PlayerWrapper.LocalPlayer.field_Private_APIUser_0.displayName, "SyncAssignM");
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(playerActions, 4, 0, "Become Bystander", () =>
             {
-                Murder4Utils.BeARole(PlayerWrapper.LocalPlayer.field_Private_APIUser_0.displayName, "SyncAssignB");
+                Murder4Utils.AssignRole(PlayerWrapper.LocalPlayer.field_Private_APIUser_0.displayName, "SyncAssignB");
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(playerActions, 1, 1, "Become Detective", () =>
             {
-                Murder4Utils.BeARole(PlayerWrapper.LocalPlayer.field_Private_APIUser_0.displayName, "SyncAssignD");
+                Murder4Utils.AssignRole(PlayerWrapper.LocalPlayer.field_Private_APIUser_0.displayName, "SyncAssignD");
             }, "Brings death to all players", false, null, buttonImage);
 
 
 
             new QMSingleButton(worldActions, 1, 0, "Open Doors", () =>
             {
-                Murder4Utils.OpenAllDoors();
+                Murder4Utils.OpenDoors();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(worldActions, 2, 0, "Close Doors", () =>
             {
-                Murder4Utils.CloseAllDoors();
+                Murder4Utils.CloseDoors();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(worldActions, 3, 0, "Unlock Doors", () =>
             {
-                Murder4Utils.UnlockAndOpenAllDoors();
+                Murder4Utils.ForceOpenDoors();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(worldActions, 4, 0, "Lock Doors", () =>
             {
-                Murder4Utils.LockAllDoors();
+                Murder4Utils.LockDoors();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(worldActions, 1, 1, "Release Snake", () =>
             {
-                Murder4Utils.ReleaseSnake();
+                Murder4Utils.SpawnSnake();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(worldActions, 2, 1, "Patreon Revolver", () =>
             {
-                Murder4Utils.RevolverPatronSkin();
+                Murder4Utils.ApplyRevolverSkin();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(worldActions, 3, 1, "Start Match", () =>
             {
-                Murder4Utils.StartMatch();
+                Murder4Utils.StartGame();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(worldActions, 4, 1, "Find Murderer", () =>
             {
-                Murder4Utils.FindMurder();
+                Murder4Utils.IdentifyMurderer();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMToggleButton(worldActions, 1, 2, "Find Murderer", () =>
             {
-                MelonCoroutines.Start(Murder4Utils.KnifeShieldCoroutine(PlayerWrapper.LocalPlayer._vrcplayer));
+                MelonCoroutines.Start(Murder4Utils.CreateKnifeShield(PlayerWrapper.LocalPlayer._vrcplayer));
             }, delegate {
-                MelonCoroutines.Stop(Murder4Utils.KnifeShieldCoroutine(PlayerWrapper.LocalPlayer._vrcplayer));
+                MelonCoroutines.Stop(Murder4Utils.CreateKnifeShield(PlayerWrapper.LocalPlayer._vrcplayer));
             }, "Brings death to all players", false, buttonImage);
 
             new QMSingleButton(gunActions, 1, 0, "Fire Revolver", () =>
             {
-                Murder4Utils.firerevolver();
+                Murder4Utils.FireRevolver();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(gunActions, 2, 0, "Fire Shotgun", () =>
             {
-                Murder4Utils.fireShotgun();
+                Murder4Utils.FireShotgun();
             }, "Brings death to all players", false, null, buttonImage);
 
             new QMSingleButton(gunActions, 3, 0, "Fire Luger", () =>
             {
-                Murder4Utils.fireLuger();
+                Murder4Utils.FireLuger();
             }, "Brings death to all players", false, null, buttonImage);
 
             QMNestedMenu FTAC = new QMNestedMenu(gameHacks, 2, 0, "<color=#8d142b>FTAC</color>", "<color=#8d142b>FTAC</color>", "Opens Select User menu", false, FTACIcon, buttonImage);
@@ -151,6 +162,27 @@ namespace Odium.QMPages
             {
                 FTACUdonUtils.SendEvent("OpenGroup");
             }, "Brings death to all players", false, null, buttonImage);
+        }
+
+        public static IEnumerator CrashPlayersWithDelay(List<Player> targets)
+        {
+            try
+            {
+                foreach (var player in targets)
+                {
+                    if (player == null) continue;
+
+                    for (int i = 0; i < 150; i++)
+                    {
+                        Murder4Utils.SendTargetedPatreonEvent(player, "ListPatrons");
+                        yield return new WaitForSeconds(0.4f);
+                    }
+                }
+            }
+            finally
+            {
+                Patches.PhotonPatches.BlockUdon = false;
+            }
         }
     }
 }

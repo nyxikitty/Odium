@@ -1,113 +1,100 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon;
-using VRC.Udon.Common.Interfaces;
 
 namespace Odium.GameCheats
 {
-    class Murder4Utils
+    internal static class Murder4Utils
     {
-        public static void OpenAllDoors()
+        private static bool _knifeShieldActive;
+
+        private static void ExecuteDoorAction(string action) =>
+            GameObject.FindObjectsOfType<GameObject>()
+                .Where(go => go.name.StartsWith("Door"))
+                .ToList().ForEach(door => door.transform
+                    .Find($"Door Anim/Hinge/Interact {action}")
+                    ?.GetComponent<UdonBehaviour>()?.Interact());
+
+        public static void OpenDoors() => ExecuteDoorAction("open");
+        public static void CloseDoors() { ExecuteDoorAction("close"); LockDoors(); }
+        public static void LockDoors() => ExecuteDoorAction("lock");
+
+        public static void ForceOpenDoors()
         {
-            foreach (var door in GameObject.FindObjectsOfType<GameObject>().Where(go => go.name.StartsWith("Door")))
-                door.transform.Find("Door Anim/Hinge/Interact open")?.GetComponent<UdonBehaviour>()?.Interact();
+            GameObject.FindObjectsOfType<GameObject>()
+                .Where(go => go.name.StartsWith("Door"))
+                .ToList().ForEach(door => {
+                    var udon = door.transform.Find("Door Anim/Hinge/Interact shove")?.GetComponent<UdonBehaviour>();
+                    for (int i = 0; i < 4; i++) udon?.Interact();
+                });
+            OpenDoors();
         }
 
-        public static void UnlockAndOpenAllDoors()
-        {
-            foreach (var door in GameObject.FindObjectsOfType<GameObject>().Where(go => go.name.StartsWith("Door")))
-            {
-                var udon = door.transform.Find("Door Anim/Hinge/Interact shove")?.GetComponent<UdonBehaviour>();
-                for (int i = 0; i < 4; i++) udon?.Interact();
-            }
+        private static void SendGameEvent(string eventName) =>
+            GameObject.Find("Game Logic")?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
 
-            OpenAllDoors();
-        }
+        private static void SendWeaponEvent(string weaponPath, string eventName) =>
+            GameObject.Find(weaponPath)?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
 
-        public static void CloseAllDoors()
-        {
-            foreach (var door in GameObject.FindObjectsOfType<GameObject>().Where(go => go.name.StartsWith("Door")))
-                door.transform.Find("Door Anim/Hinge/Interact close")?.GetComponent<UdonBehaviour>()?.Interact();
-            LockAllDoors();
-        }
+        private static void SendPatreonEvent(string eventName) =>
+            GameObject.Find("Patreon Credits")?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
 
-        public static void LockAllDoors()
-        {
-            foreach (var door in GameObject.FindObjectsOfType<GameObject>().Where(go => go.name.StartsWith("Door")))
-                door.transform.Find("Door Anim/Hinge/Interact lock")?.GetComponent<UdonBehaviour>()?.Interact();
-        }
-
-        public static void SendGameEvent(string eventName) => GameObject.Find("Game Logic")?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
-
-        public static void StartMatch() { SendGameEvent("Btn_Start"); SendGameEvent("SyncStartGame"); }
-        public static void AbortMatch() => SendGameEvent("SyncAbort");
-        public static void ReshowEveryoneRoles() => SendGameEvent("OnLocalPlayerAssignedRole");
-        public static void BystandersWin() => SendGameEvent("SyncVictoryB");
-        public static void MurderWin() => SendGameEvent("SyncVictoryM");
-
-        static void SendWeaponEvent(string weaponPath, string eventName) => GameObject.Find(weaponPath)?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
-
-        public static void KillAll() => SendGameEvent("KillLocalPlayer");
+        public static void StartGame() { SendGameEvent("Btn_Start"); SendGameEvent("SyncStartGame"); }
+        public static void AbortGame() => SendGameEvent("SyncAbort");
+        public static void RefreshRoles() => SendGameEvent("OnLocalPlayerAssignedRole");
+        public static void TriggerBystanderWin() => SendGameEvent("SyncVictoryB");
+        public static void TriggerMurdererWin() => SendGameEvent("SyncVictoryM");
+        public static void ExecuteAll() => SendGameEvent("KillLocalPlayer");
         public static void BlindAll() => SendGameEvent("OnLocalPlayerBlinded");
-        public static void CameraFlash() => SendGameEvent("OnLocalPlayerFlashbanged");
+        public static void FlashAll() => SendGameEvent("OnLocalPlayerFlashbanged");
 
-        static void BringWeapon(string path)
+        private static void TeleportWeapon(string path)
         {
             var weapon = GameObject.Find(path);
-            if (!weapon) return;
+            if (weapon == null) return;
             Networking.SetOwner(Networking.LocalPlayer, weapon);
             weapon.transform.position = Networking.LocalPlayer.gameObject.transform.position + Vector3.up * 0.1f;
         }
 
-        public static void BringRevolver() => BringWeapon("Game Logic/Weapons/Revolver");
-        public static void BringShotgun() => BringWeapon("Game Logic/Weapons/Unlockables/Shotgun (0)");
-        public static void BringLuger() => BringWeapon("Game Logic/Weapons/Unlockables/Luger (0)");
-        public static void BringSmokeGrenade() => BringWeapon("Game Logic/Weapons/Unlockables/Smoke (0)");
-        public static void BringFlashCamera() => BringWeapon("Game Logic/Polaroids Unlock Camera/FlashCamera");
+        public static void GetRevolver() => TeleportWeapon("Game Logic/Weapons/Revolver");
+        public static void GetShotgun() => TeleportWeapon("Game Logic/Weapons/Unlockables/Shotgun (0)");
+        public static void GetLuger() => TeleportWeapon("Game Logic/Weapons/Unlockables/Luger (0)");
+        public static void GetSmoke() => TeleportWeapon("Game Logic/Weapons/Unlockables/Smoke (0)");
+        public static void GetCamera() => TeleportWeapon("Game Logic/Polaroids Unlock Camera/FlashCamera");
+        public static void GetTraps() => Enumerable.Range(0, 3).ToList()
+            .ForEach(i => TeleportWeapon($"Game Logic/Weapons/Bear Trap ({i})"));
 
-        public static void BringFrag(VRCPlayer player, bool shouldblow)
+        public static void DeployFrag(VRCPlayer target, bool detonate = false)
         {
             var frag = GameObject.Find("Game Logic/Weapons/Unlockables/Frag (0)");
-            if (frag)
+            if (frag != null)
             {
                 Networking.SetOwner(VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRCPlayerApi_0, frag);
-                frag.transform.position = player.transform.position + Vector3.up * 0.1f;
-            }
-            if (shouldblow)
-            {
-                Frag0Explode();
+                frag.transform.position = target.transform.position + Vector3.up * 0.1f;
+                if (detonate) DetonateFrag();
             }
         }
 
-        public static void BringTraps()
-        {
-            for (int i = 0; i < 3; i++)
-                BringWeapon($"Game Logic/Weapons/Bear Trap ({i})");
-        }
-
-        public static IEnumerator KnifeShieldCoroutine(VRCPlayer player)
+        public static IEnumerator CreateKnifeShield(VRCPlayer player)
         {
             var knives = Enumerable.Range(0, 6).Select(i => GameObject.Find($"Game Logic/Weapons/Knife ({i})")).ToList();
             var shield = new GameObject { transform = { position = player.transform.position + Vector3.up * 0.35f } };
 
-            while (knifeShieldbool)
+            while (_knifeShieldActive)
             {
-                shield.transform.SetPositionAndRotation(player.transform.position + Vector3.up * 0.35f,
+                shield.transform.SetPositionAndRotation(
+                    player.transform.position + Vector3.up * 0.35f,
                     Quaternion.Euler(0, 360f * Time.time, 0));
 
                 for (int i = 0; i < knives.Count; i++)
                 {
                     Networking.LocalPlayer.TakeOwnership(knives[i]);
-                    knives[i].transform.SetPositionAndRotation(shield.transform.position + shield.transform.forward,
+                    knives[i].transform.SetPositionAndRotation(
+                        shield.transform.position + shield.transform.forward,
                         Quaternion.LookRotation(player.transform.position - knives[i].transform.position));
                     shield.transform.Rotate(0, 360f / knives.Count, 0);
                 }
@@ -116,57 +103,84 @@ namespace Odium.GameCheats
             UnityEngine.Object.Destroy(shield);
         }
 
-        public static void fireShotgun() => SendWeaponEvent("Game Logic/Weapons/Unlockables/Shotgun (0)", "Fire");
-        public static void firerevolver() => SendWeaponEvent("Game Logic/Weapons/Revolver", "Fire");
-        public static void fireLuger() => SendWeaponEvent("Game Logic/Weapons/Unlockables/Luger (0)", "Fire");
-        public static void Frag0Explode() => SendWeaponEvent("Game Logic/Weapons/Unlockables/Frag (0)", "Explode");
-        public static void RevolverPatronSkin() => SendWeaponEvent("Game Logic/Weapons/Revolver", "PatronSkin");
-        public static void ReleaseSnake() => SendWeaponEvent("Game Logic/Snakes/SnakeDispenser", "DispenseSnake");
+        public static void FireShotgun() => SendWeaponEvent("Game Logic/Weapons/Unlockables/Shotgun (0)", "Fire");
+        public static void FireRevolver() => SendWeaponEvent("Game Logic/Weapons/Revolver", "Fire");
+        public static void FireLuger() => SendWeaponEvent("Game Logic/Weapons/Unlockables/Luger (0)", "Fire");
+        public static void DetonateFrag() => SendWeaponEvent("Game Logic/Weapons/Unlockables/Frag (0)", "Explode");
+        public static void ApplyRevolverSkin() => SendWeaponEvent("Game Logic/Weapons/Revolver", "PatronSkin");
+        public static void SpawnSnake() => SendWeaponEvent("Game Logic/Snakes/SnakeDispenser", "DispenseSnake");
 
-        public static void FindMurder()
+        public static void IdentifyMurderer()
         {
-            var murdererName = Resources.FindObjectsOfTypeAll<Transform>()
+            var murdererObj = Resources.FindObjectsOfTypeAll<Transform>()
                 .FirstOrDefault(t => t.gameObject.name == "Murderer Name")?.gameObject;
-            var text = murdererName?.GetComponent<TextMeshProUGUI>()?.text + ", Is the murder.";
+            var murdererText = murdererObj?.GetComponent<TextMeshProUGUI>()?.text + ", Is the murder.";
         }
 
-        public static void BeARole(string username, string role)
+        public static void ExplodeAtTarget(VRC.Player target)
+        {
+            var frag = GameObject.Find("Frag (0)");
+            Networking.LocalPlayer.TakeOwnership(frag);
+            frag.transform.position = target.transform.position;
+            frag.GetComponent<UdonBehaviour>().SendCustomNetworkEvent(0, "Explode");
+        }
+
+        public static void BlindTarget(VRC.Player target) => SendTargetedEvent(target, "SyncFlashbang");
+
+        public static void AssignRole(string username, string role)
         {
             for (int i = 0; i < 24; i++)
             {
-                if (GameObject.Find($"Game Logic/Game Canvas/Game In Progress/Player List/Player List Group/Player Entry ({i})/Player Name Text")
-                    .GetComponent<TextMeshProUGUI>().text == username)
+                var playerName = GameObject.Find($"Game Logic/Game Canvas/Game In Progress/Player List/Player List Group/Player Entry ({i})/Player Name Text")
+                    .GetComponent<TextMeshProUGUI>().text;
+
+                if (playerName == username)
                 {
-                    GameObject.Find($"Player Node ({i})").GetComponent<UdonBehaviour>().SendCustomNetworkEvent(0, "SyncAssignM");
+                    GameObject.Find($"Player Node ({i})")
+                        .GetComponent<UdonBehaviour>()
+                        .SendCustomNetworkEvent(0, "SyncAssignM");
                     break;
                 }
             }
         }
 
-        public static IEnumerator InitTheme()
+        public static IEnumerator InitializeTheme()
         {
             while (!GameObject.Find("Game Logic/Game Canvas")) yield return null;
 
-            var setRedText = new Action<string, string>((path, text) => {
+            void SetRedText(string path, string text)
+            {
                 var comp = GameObject.Find(path).GetComponent<TextMeshProUGUI>();
                 comp.text = text;
                 comp.color = UnityEngine.Color.red;
-            });
+            }
 
-            setRedText("Game Logic/Game Canvas/Pregame/Title Text", "HABIBI 4");
-            setRedText("Game Logic/Game Canvas/Pregame/Author Text", "By Osama");
-            GameObject.Find("Game Logic/Game Canvas/Background Panel Border").GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.red;
-
+            SetRedText("Game Logic/Game Canvas/Pregame/Title Text", "HABIBI 4");
+            SetRedText("Game Logic/Game Canvas/Pregame/Author Text", "By Osama");
+            GameObject.Find("Game Logic/Game Canvas/Background Panel Border")
+                .GetComponent<UnityEngine.UI.Image>().color = UnityEngine.Color.red;
             GameObject.Find("Game Logic/Player HUD/Death HUD Anim").SetActive(false);
             GameObject.Find("Game Logic/Player HUD/Blind HUD Anim").SetActive(false);
         }
-        public static void SendPatreonEvent(string eventName) => GameObject.Find("Patreon Credits")?.GetComponent<UdonBehaviour>()?.SendCustomNetworkEvent(0, eventName);
 
-        public static void SendTargetedPatreonUdonEvent(VRC.Player plr, string evt)
+        public static void SendTargetedPatreonEvent(VRC.Player target, string eventName)
         {
-            UdonExtensions.SendUdon(GameObject.Find("Patreon Credits"), evt, plr);
+            var credits = GameObject.Find("Patreon Credits");
+            credits.GetComponent<UdonBehaviour>().enabled = true;
+            UdonExtensions.SendUdon(credits, eventName, target);
+            credits.GetComponent<UdonBehaviour>().enabled = false;
         }
 
-        public static bool knifeShieldbool;
+        public static void SendTargetedEvent(VRC.Player target, string eventName)
+        {
+            var gameLogic = GameObject.Find("Game Logic");
+            UdonExtensions.SendUdon(gameLogic, eventName, target);
+        }
+
+        public static bool KnifeShieldActive
+        {
+            get => _knifeShieldActive;
+            set => _knifeShieldActive = value;
+        }
     }
 }

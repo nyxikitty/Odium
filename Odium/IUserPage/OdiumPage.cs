@@ -10,6 +10,8 @@ using UnityEngine;
 using Odium.ButtonAPI.QM;
 using Odium.GameCheats;
 using Odium.QMPages;
+using MelonLoader;
+using VRC.SDKBase;
 
 namespace Odium.IUserPage
 {
@@ -37,14 +39,54 @@ namespace Odium.IUserPage
             QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1f, "Spy Utils", "<color=#8d142b>Spy Utils</color>", "Opens Select User menu", false, null, bgImage);
             QMNestedMenu murder4 = new QMNestedMenu(qMNestedMenu1, 2.5f, 2f, "Murder 4", "<color=#8d142b>Murder 4</color>", "Opens Select User menu", false, M4Icon, bgImage);
 
+            Sprite KillAllIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Kill.png");
+            Sprite WinIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Win.png");
+            Sprite PeopleIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\People.png");
+            Sprite GunIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Gun.png");
+            Sprite WorldIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\WorldIcon.png");
+            Sprite FTACIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\FTAC.png");
 
-            new QMSingleButton(murder4, 2.5f, 1.5f, "Crash", () =>
+            QMNestedMenu winTriggers = new QMNestedMenu(murder4, 2, 0, "<color=#8d142b>Win Triggers</color>", "<color=#8d142b>Win Triggers</color>", "Opens Select User menu", false, WinIcon, bgImage);
+            QMNestedMenu playerActions = new QMNestedMenu(murder4, 3, 0, "<color=#8d142b>Player Actions</color>", "<color=#8d142b>Player Actions</color>", "Opens Select User menu", false, PeopleIcon, bgImage);
+            QMNestedMenu exploits = new QMNestedMenu(murder4, 2.5f, 1, "<color=#8d142b>Exploits</color>", "<color=#8d142b>Exploits</color>", "Opens Select User menu", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), bgImage);
+
+            new QMSingleButton(exploits, 2.5f, 1.5f, "Crash", () =>
             {
                 var targetPlayer = ApiUtils.GetIUser();
                 Patches.PhotonPatches.BlockUdon = true;
-                for (int i = 0; i < 100; i++) Murder4Utils.SendTargetedPatreonUdonEvent(targetPlayer, "ListPatrons");
+                for (int i = 0; i < 300; i++) Murder4Utils.SendTargetedPatreonEvent(targetPlayer, "ListPatrons");
 
                 Patches.PhotonPatches.BlockUdon = false;
+            }, "Brings death to all players", false, null, bgImage);
+
+            new QMSingleButton(winTriggers, 2, 2, "Assign Murderer", () =>
+            {
+                var targetPlayer = ApiUtils.GetIUser();
+                Murder4Utils.SendTargetedEvent(targetPlayer, "SyncAssignM");
+            }, "Brings death to all players", false, WinIcon, bgImage);
+
+            new QMSingleButton(winTriggers, 3, 2, "Assign Bystander", () =>
+            {
+                var targetPlayer = ApiUtils.GetIUser();
+                Murder4Utils.SendTargetedEvent(targetPlayer, "SyncAssignB");
+            }, "Brings death to all players", false, WinIcon, bgImage);
+
+            new QMSingleButton(playerActions, 1, 0, "Assign Detective", () =>
+            {
+                var targetPlayer = ApiUtils.GetIUser();
+                Murder4Utils.SendTargetedEvent(targetPlayer, "SyncAssignD");
+            }, "Brings death to all players", false, null, bgImage);
+
+            new QMSingleButton(playerActions, 2, 0, "Blind", () =>
+            {
+                var targetPlayer = ApiUtils.GetIUser();
+                Murder4Utils.SendTargetedEvent(targetPlayer, "SyncAssignD");
+            }, "Brings death to all players", false, null, bgImage);
+
+            new QMSingleButton(playerActions, 3, 0, "Explode", () =>
+            {
+                var targetPlayer = ApiUtils.GetIUser();
+                Murder4Utils.ExplodeAtTarget(targetPlayer);
             }, "Brings death to all players", false, null, bgImage);
 
             // Stalk Audio
