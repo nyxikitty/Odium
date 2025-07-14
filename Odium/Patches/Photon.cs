@@ -50,7 +50,7 @@ namespace Odium.Patches
         public static List<string> blockedUserIds = new List<string>();
         public static List<string> mutedUserIds = new List<string>();
         private static Dictionary<string, int> crashAttemptCounts = new Dictionary<string, int>();
-
+        private static Dictionary<string, DateTime> lastLogTimes = new Dictionary<string, DateTime>();
         private static Dictionary<int, PlayerActivityData> playerActivityTracker = new Dictionary<int, PlayerActivityData>();
         private static HashSet<string> crashedPlayerIds = new HashSet<string>();
         private static object crashDetectionCoroutine;
@@ -314,7 +314,8 @@ namespace Odium.Patches
                         if (udonBehaviour != null)
                         {
                             string behaviourName = udonBehaviour.gameObject.name;
-                            uint eventHash = dictionary[1].Unbox<uint>();
+                            int eventHashInt = dictionary[1].Unbox<int>();
+                            uint eventHash = (uint)eventHashInt;
                             if (udonBehaviour.TryGetEntrypointNameFromHash(eventHash, out string entryPointName))
                             {
                                 if (entryPointName == "ListPatrons" && behaviourName == "Patreon Credits")
@@ -326,13 +327,19 @@ namespace Odium.Patches
                                     {
                                         crashAttemptCounts[playerName] = 0;
                                     }
+                                    if (!lastLogTimes.ContainsKey(playerName))
+                                    {
+                                        lastLogTimes[playerName] = DateTime.MinValue;
+                                    }
 
                                     crashAttemptCounts[playerName]++;
                                     int attemptCount = crashAttemptCounts[playerName];
+                                    DateTime currentTime = DateTime.Now;
 
-                                    if (attemptCount == 1 || attemptCount % 1000 == 0)
+                                    if ((currentTime - lastLogTimes[playerName]).TotalSeconds >= 15)
                                     {
                                         InternalConsole.LogIntoConsole($"Crash attempt blocked from -> {playerName} (Total: {attemptCount})", "[ListPatrons]");
+                                        lastLogTimes[playerName] = currentTime;
                                     }
 
                                     return false;
