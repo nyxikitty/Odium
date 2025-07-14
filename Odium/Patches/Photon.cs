@@ -49,7 +49,7 @@ namespace Odium.Patches
         public static Dictionary<int, int> blockedUSpeakPackets = new Dictionary<int, int>();
         public static List<string> blockedUserIds = new List<string>();
         public static List<string> mutedUserIds = new List<string>();
-        private static Dictionary<string, DateTime> lastCrashLogTime = new Dictionary<string, DateTime>();
+        private static Dictionary<string, int> crashAttemptCounts = new Dictionary<string, int>();
 
         private static Dictionary<int, PlayerActivityData> playerActivityTracker = new Dictionary<int, PlayerActivityData>();
         private static HashSet<string> crashedPlayerIds = new HashSet<string>();
@@ -299,17 +299,15 @@ namespace Odium.Patches
                             blockedUSpeakPackets[param_1.sender] = 0;
                         }
                         return false;
-                    }
-                    else
+                    } else
                     {
                         return true;
                     }
-                    break;
                 case 18:
                     var dictionary = param_1.Parameters[param_1.CustomDataKey].Cast<Il2CppSystem.Collections.Generic.Dictionary<byte, Il2CppSystem.Object>>();
                     int viewId = dictionary[2].Unbox<int>();
                     var eventType = dictionary[0].Unbox<byte>();
-                    if (eventType == 2)
+                    if (eventType == 1)
                     {
                         PhotonView photonView = PhotonView.Method_Public_Static_PhotonView_Int32_0(viewId);
                         UdonBehaviour udonBehaviour = photonView.gameObject.GetComponent<UdonBehaviour>();
@@ -323,22 +321,18 @@ namespace Odium.Patches
                                 {
                                     VRC.Player vrcPlayer = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
                                     string playerName = vrcPlayer.field_Private_APIUser_0.displayName;
-                                    DateTime currentTime = DateTime.Now;
 
-                                    bool shouldLog = false;
-                                    if (!lastCrashLogTime.ContainsKey(playerName))
+                                    if (!crashAttemptCounts.ContainsKey(playerName))
                                     {
-                                        shouldLog = true;
-                                    }
-                                    else if ((currentTime - lastCrashLogTime[playerName]).TotalSeconds >= 15)
-                                    {
-                                        shouldLog = true;
+                                        crashAttemptCounts[playerName] = 0;
                                     }
 
-                                    if (shouldLog)
+                                    crashAttemptCounts[playerName]++;
+                                    int attemptCount = crashAttemptCounts[playerName];
+
+                                    if (attemptCount == 1 || attemptCount % 1000 == 0)
                                     {
-                                        InternalConsole.LogIntoConsole($"Crash attempt blocked from -> {playerName}", "[ListPatrons]");
-                                        lastCrashLogTime[playerName] = currentTime;
+                                        InternalConsole.LogIntoConsole($"Crash attempt blocked from -> {playerName} (Total: {attemptCount})", "[ListPatrons]");
                                     }
 
                                     return false;
