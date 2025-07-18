@@ -57,16 +57,14 @@ namespace Odium
             {
                 OdiumConsole.Initialize();
                 OdiumConsole.LogGradient("Odium", "Starting authentication check...", LogLevel.Info, true);
-
                 if (!AuthenticateUser())
                 {
+                    ShowErrorDialog("Authentication Required", "Please authenticate Odium to continue.");
                     MelonLogger.Error("Authentication failed. Closing application.");
                     Application.Quit();
-                    Environment.Exit(1);
                     return;
                 }
 
-                OdiumConsole.LogGradient("Odium", "Authentication successful! Starting mod initialization...", LogLevel.Info, true);
                 wasKeyValid = true;
 
                 ModSetup.Initialize().GetAwaiter();
