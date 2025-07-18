@@ -15,7 +15,7 @@ namespace Odium.Wrappers
         {
             if (InstanceID != null)
             {
-                PhotonExtensions.OpRaiseEvent(70, new Dictionary<byte, object>
+                PhotonExtensions.RaiseEvent(70, new Dictionary<byte, object>
                 {
                     {
                         0,
@@ -27,7 +27,7 @@ namespace Odium.Wrappers
                     },
                     {
                         6,
-                        PhotonExtensions.Vector3ToBytes(Position)
+                        PhotonExtensions.SerializeVector3(Position)
                     },
                     {
                         7,

@@ -11,7 +11,7 @@ using VRC.SDKBase;
 
 namespace Odium.Components
 {
-    class USpeakSpam
+    public class USpeakSpam
     {
         public static bool isEnabled = false;
         public static void ToggleUSpeakSpam(bool state)
@@ -44,8 +44,8 @@ namespace Odium.Components
                     field_Public_EventCaching_0 = 0,
                     field_Public_ReceiverGroup_0 = 0
                 };
-                PhotonExtensions.OpRaiseEvent(1, trimmedArray, raiseEventOptions, default(SendOptions));
-                yield return new WaitForSecondsRealtime(0.1f);
+                PhotonExtensions.SendLowLevelEvent(1, trimmedArray);
+                yield return new WaitForSecondsRealtime(0.05f);
             }
             yield break;
         }

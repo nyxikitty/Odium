@@ -35,11 +35,10 @@ namespace Odium.QMPages
             QMNestedMenu gunActions = new QMNestedMenu(murder4NestedMenu, 4, 0, "<color=#8d142b>Gun Actions</color>", "<color=#8d142b>Gun Actions</color>", "Opens Select User menu", false, GunIcon, buttonImage);
             QMNestedMenu exploits = new QMNestedMenu(murder4NestedMenu, 2.5f, 1, "<color=#8d142b>Exploits</color>", "<color=#8d142b>Exploits</color>", "Opens Select User menu", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), buttonImage);
 
-            new QMSingleButton(exploits, 2.5f, 1.5f, "Crash All", () =>
+            new QMSingleButton(exploits, 2f, 1.5f, "Crash All", () =>
             {
                 try
                 {
-                    Patches.PhotonPatches.BlockUdon = true;
                     var localPlayerName = Networking.LocalPlayer.displayName;
                     var targets = PlayerManager.prop_PlayerManager_0.field_Private_List_1_Player_0.ToArray()
                         .Where(player =>
@@ -53,9 +52,16 @@ namespace Odium.QMPages
                 }
                 catch (Exception ex)
                 {
-                    Patches.PhotonPatches.BlockUdon = false;
                 }
             }, "Brings death to all players", false, KillAllIcon, buttonImage);
+
+            new QMToggleButton(exploits, 3, 1.5f, "Instance Lock", delegate
+            {
+                AssignedVariables.instanceLock = true;
+            }, delegate
+            {
+                AssignedVariables.instanceLock = false;
+            }, "", false, buttonImage);
 
         new QMSingleButton(winTriggers, 2, 2, "Murder", () =>
             {

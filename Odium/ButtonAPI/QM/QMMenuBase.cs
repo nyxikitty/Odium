@@ -8,7 +8,7 @@ namespace Odium.ButtonAPI.QM
     {
         protected string btnQMLoc;
         protected GameObject MenuObject;
-        internal TextMeshProUGUI MenuTitleText;
+        public TextMeshProUGUI MenuTitleText;
         protected UIPage MenuPage;
         protected string MenuName;
 

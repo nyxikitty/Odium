@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.UI.Core.Styles;
 using Odium.QMPages;
-using VRC.Ui;
+using VRC.UI;
 using static System.Net.Mime.MediaTypeNames;
 using System.Collections;
 using Odium.UI;
@@ -18,19 +18,18 @@ using MelonLoader;
 
 namespace Odium.ButtonAPI.QM
 {
-    internal class PlayerDebugUI
+    public class PlayerDebugUI
     {
-        // Constants
         private const int MAX_LINES = 33;
         private const int MAX_CHARACTERS_PER_LINE = 68;
-        private const int MAX_DISPLAYED_USERS = 38; // New constant for user limit
+        private const int MAX_DISPLAYED_USERS = 38;
 
         public static GameObject label;
         public static GameObject background;
         public static TextMeshProUGUI text;
         public static List<string> messageList = new List<string>();
-        private static string displayText = ""; // Added missing variable
-        private static object playerListCoroutine; // To manage the coroutine
+        private static string displayText = "";
+        private static object playerListCoroutine;
 
         private static readonly Dictionary<string, Color> keywordColors = new Dictionary<string, Color>
         {
@@ -145,14 +144,14 @@ namespace Odium.ButtonAPI.QM
 
                 background.SetActive(true);
 
-                var bgImage = background.GetComponent<ImageEx>();
+                var bgImage = background.GetComponent<VRC.UI.ImageEx>();
                 if (bgImage == null)
                 {
                     OdiumConsole.Log("DebugUI", "Background image component not found");
                     return;
                 }
 
-                string bgPath = System.IO.Path.Combine(Environment.CurrentDirectory, "Odium", "QMDebugUIBackground.png");
+                string bgPath = System.IO.Path.Combine(Environment.CurrentDirectory, "Odium", "QMPlayerList.png");
                 var sprite = bgPath.LoadSpriteFromDisk();
                 if (sprite == null)
                 {

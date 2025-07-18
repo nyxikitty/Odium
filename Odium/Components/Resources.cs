@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Odium.Components
 {
-    internal class ResourceWrapper
+    public class ResourceWrapper
     {
         public enum Icons
         {

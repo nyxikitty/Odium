@@ -48,7 +48,7 @@ namespace Odium.Components
                 if (!string.IsNullOrEmpty(iconPath))
                 {
                     Sprite icon = SpriteUtil.LoadFromDisk(iconPath);
-                    var iconComponent = newButton.transform.Find("Text_ButtonName/Icon_Add")?.GetComponent<VRC.Ui.ImageEx>();
+                    var iconComponent = newButton.transform.Find("Text_ButtonName/Icon_Add")?.GetComponent<VRC.UI.ImageEx>();
                     if (iconComponent != null && icon != null)
                     {
                         iconComponent.sprite = icon;

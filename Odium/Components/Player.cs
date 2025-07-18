@@ -175,6 +175,7 @@ namespace Odium.Wrappers
             }
         }
 
+
         public static Color ColorFromHex(string hex, float alpha = 1f)
         {
             if (hex.StartsWith("#"))

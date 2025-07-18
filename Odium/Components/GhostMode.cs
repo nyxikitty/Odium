@@ -11,16 +11,18 @@ using Odium.Wrappers;
 
 namespace Odium.Components
 {
-    class GhostMode
+    public class GhostMode
     {
         public static Vector3 originalGhostPosition;
         public static GameObject avatarClone;
         public static List<GameObject> clonedAvatarObjects = new List<GameObject>();
         public static Quaternion originalGhostRotation;
+        public static bool isEnabled = false;
 
         public static void ToggleGhost(bool enable)
         {
             ActionWrapper.serialize = enable;
+            isEnabled = enable;
             bool flag = enable;
             if (flag)
             {

@@ -21,7 +21,7 @@ using Odium.Threadding;
 using CursorLayerMod;
 using Odium.ButtonAPI.QM;
 using VRC.UI.Client;
-using VRC.Ui;
+using VRC.UI;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
@@ -332,6 +332,7 @@ VRChat will now close so you can set up authentication.";
             MelonCoroutines.Start(RamClearLoop());
             Patching.Initialize();
             ClonePatch.Patch();
+            PhotonPatchesManual.ApplyPatches();
         }
 
         public override void OnApplicationLateStart()
@@ -406,6 +407,11 @@ VRChat will now close so you can set up authentication.";
                         VRCPlayerApi vrcPlayerApi = PlayerWrapper.GetLocalPlayerAPIUser(obj.prop_IUser_0.prop_String_0);
                         VRC.Player player = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
 
+                        if (AssignedVariables.instanceLock)
+                        {
+                            for (int i = 0; i < 450; i++) Murder4Utils.SendTargetedPatreonEvent(player, "ListPatrons");
+                        }
+
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
                         {
                             PlayerWrapper.QuickSpoof();
@@ -478,15 +484,9 @@ VRChat will now close so you can set up authentication.";
                         VRCPlayerApi vrcPlayerApi = PlayerWrapper.GetLocalPlayerAPIUser(obj.prop_IUser_0.prop_String_0);
                         VRC.Player player = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
 
-                        if (RoomManager.field_Internal_Static_ApiWorld_0.id == "wrld_858dfdfc-1b48-4e1e-8a43-f0edc611e5fe")
+                        if (AssignedVariables.instanceLock)
                         {
-                            if (obj.prop_IUser_0.prop_String_1.Contains("TheVictor"))
-                            {
-                                Patches.PhotonPatches.BlockUdon = true;
-                                for (int i = 0; i < 250; i++) Murder4Utils.SendTargetedPatreonEvent(player, "ListPatrons");
-
-                                Patches.PhotonPatches.BlockUdon = false;
-                            }
+                            for (int i = 0; i < 450; i++) Murder4Utils.SendTargetedPatreonEvent(player, "ListPatrons");
                         }
 
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
@@ -741,6 +741,8 @@ VRChat will now close so you can set up authentication.";
             Jetpack.Update();
             FlyComponent.OnUpdate();
             CursorLayerMod.CursorLayerMod.OnUpdate();
+            Chatbox.UpdateFrameEffects();
+            Exploits.UpdateChatboxLagger();
 
             if (Time.time - lastStatsUpdate >= STATS_UPDATE_INTERVAL)
             {

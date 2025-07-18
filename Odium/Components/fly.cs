@@ -8,14 +8,15 @@ using UnityEngine;
 
 namespace Odium.Modules
 {
-    internal class FlyComponent
+    public class FlyComponent
     {
         private static bool setupedNormalFly = true;
         private static float cachedGravity = 0f;
 
         public static bool FlyEnabled = false;
-        public static float FlySpeed = 0.05f;
+        public static float FlySpeed = 5f;
         public static DateTime LastKeyCheck = DateTime.Now;
+
         public static void OnUpdate()
         {
             var currentTime = DateTime.Now;
@@ -23,78 +24,105 @@ namespace Odium.Modules
             {
                 if (Input.GetKeyDown(KeyCode.F) && Input.GetKey(KeyCode.LeftControl))
                 {
-                    FlyEnabled = !FlyEnabled;
+                    ToggleFly();
                 }
 
                 LastKeyCheck = currentTime;
             }
 
-            if (PlayerWrapper.LocalPlayer == null || PlayerWrapper.LocalPlayer == null) return;
-            
-
+            if (PlayerWrapper.LocalPlayer == null || PlayerWrapper.LocalPlayer.field_Private_VRCPlayerApi_0 == null)
+                return;
 
             if (!FlyEnabled)
             {
-                if (!setupedNormalFly)
-                {
-                    PlayerWrapper.LocalPlayer.field_Private_VRCPlayerApi_0.SetGravityStrength(cachedGravity);
-                    var collider = PlayerWrapper.LocalPlayer.gameObject?.GetComponent<Collider>();
-                    if (collider != null)
-                        collider.enabled = true;
-
-                    setupedNormalFly = true;
-                }
+                DisableFly();
                 return;
             }
 
-            if (setupedNormalFly)
+            EnableFly();
+            HandleMovement();
+        }
+
+        private static void ToggleFly()
+        {
+            FlyEnabled = !FlyEnabled;
+            if (!FlyEnabled)
             {
-                cachedGravity = PlayerWrapper.LocalPlayer.field_Private_VRCPlayerApi_0.GetGravityStrength();
-                PlayerWrapper.LocalPlayer.field_Private_VRCPlayerApi_0.SetGravityStrength(0f);
-                var collider = PlayerWrapper.LocalPlayer.gameObject.GetComponent<Collider>();
-                if (collider != null)
-                    collider.enabled = false;
-
-                setupedNormalFly = false;
+                DisableFly();
             }
+        }
 
+        private static void EnableFly()
+        {
+            if (!setupedNormalFly) return;
+
+            cachedGravity = PlayerWrapper.LocalPlayer.field_Private_VRCPlayerApi_0.GetGravityStrength();
+            PlayerWrapper.LocalPlayer.field_Private_VRCPlayerApi_0.SetGravityStrength(0f);
+
+            var collider = PlayerWrapper.LocalPlayer.gameObject.GetComponent<Collider>();
+            if (collider != null)
+                collider.enabled = false;
+
+            setupedNormalFly = false;
+        }
+
+        private static void DisableFly()
+        {
+            if (setupedNormalFly) return;
+
+            PlayerWrapper.LocalPlayer.field_Private_VRCPlayerApi_0.SetGravityStrength(cachedGravity);
+            var collider = PlayerWrapper.LocalPlayer.gameObject?.GetComponent<Collider>();
+            if (collider != null)
+                collider.enabled = true;
+
+            setupedNormalFly = true;
+        }
+
+        private static void HandleMovement()
+        {
             var transform = PlayerWrapper.LocalPlayer.gameObject.transform;
             var cameraTransform = Camera.main?.transform;
             if (cameraTransform == null) return;
 
-            float finalSpeed = FlySpeed / 2f;
+            float finalSpeed = FlySpeed;
             if (Input.GetKey(KeyCode.LeftShift))
-                finalSpeed = FlySpeed + (0.5f / 70f);
+                finalSpeed *= 2f;
 
             Vector3 move = Vector3.zero;
 
-            if (Input.GetAxis("Oculus_CrossPlatform_SecondaryThumbstickVertical") < 0f)
-                move += Vector3.down * finalSpeed;
-            if (Input.GetAxis("Oculus_CrossPlatform_SecondaryThumbstickVertical") > 0f)
-                move += Vector3.up * finalSpeed;
+            float vrVertical = Input.GetAxis("Oculus_CrossPlatform_SecondaryThumbstickVertical");
+            float vrHorizontal = Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickHorizontal");
+            float vrForward = Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickVertical");
 
-            if (Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickHorizontal") < 0f)
-                move += -transform.right * finalSpeed;
-            if (Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickHorizontal") > 0f)
-                move += transform.right * finalSpeed;
+            Vector3 forwardDirection = cameraTransform.forward;
+            forwardDirection.y = 0f;
+            forwardDirection.Normalize();
 
-            if (Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickVertical") < 0f)
-                move += -transform.forward * finalSpeed;
-            if (Input.GetAxis("Oculus_CrossPlatform_PrimaryThumbstickVertical") > 0f)
-                move += transform.forward * finalSpeed;
+            Vector3 rightDirection = cameraTransform.right;
+            rightDirection.y = 0f;
+            rightDirection.Normalize();
+
+            if (vrVertical != 0f)
+                move += Vector3.up * vrVertical * finalSpeed * Time.deltaTime;
+
+            if (vrHorizontal != 0f)
+                move += rightDirection * vrHorizontal * finalSpeed * Time.deltaTime;
+
+            if (vrForward != 0f)
+                move += forwardDirection * vrForward * finalSpeed * Time.deltaTime;
 
             if (Input.GetKey(KeyCode.Q))
-                move += -cameraTransform.up * finalSpeed;
+                move += Vector3.down * finalSpeed * Time.deltaTime;
             if (Input.GetKey(KeyCode.E))
-                move += cameraTransform.up * finalSpeed;
+                move += Vector3.up * finalSpeed * Time.deltaTime;
             if (Input.GetKey(KeyCode.A))
-                move += -cameraTransform.right * finalSpeed;
+                move += -rightDirection * finalSpeed * Time.deltaTime;
             if (Input.GetKey(KeyCode.D))
-                move += cameraTransform.right * finalSpeed;
+                move += rightDirection * finalSpeed * Time.deltaTime;
             if (Input.GetKey(KeyCode.S))
-                move += -cameraTransform.forward * finalSpeed;
+                move += -forwardDirection * finalSpeed * Time.deltaTime;
             if (Input.GetKey(KeyCode.W))
-                move += cameraTransform.forward * finalSpeed;
+                move += forwardDirection * finalSpeed * Time.deltaTime;
 
             transform.position += move;
         }

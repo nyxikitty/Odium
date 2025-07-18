@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Odium.Components
 {
-    class FileHelper
+    public class FileHelper
     {
         public static bool IsPath(string input)
         {

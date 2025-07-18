@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using VRC.Ui;
+using VRC.UI;
 
 namespace Odium.ButtonAPI.MM
 {

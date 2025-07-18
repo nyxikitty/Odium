@@ -8,7 +8,7 @@ using Odium.Wrappers;
 
 namespace Odium.Modules
 {
-    internal class portalTrap
+    public class portalTrap
     {
         public static DateTime LastPortalSpawn = DateTime.Now;
         public static void OnUpdate()

@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.UI.Core.Styles;
 using Odium.QMPages;
-using VRC.Ui;
+using VRC.UI;
 using static System.Net.Mime.MediaTypeNames;
 using System.Net.Http;
 using System.Collections;
@@ -19,7 +19,7 @@ using Newtonsoft.Json;
 
 namespace Odium.ButtonAPI.QM
 {
-    internal class DebugUI
+    public class DebugUI
     {
         public static GameObject label;
         public static GameObject background;
@@ -134,7 +134,7 @@ namespace Odium.ButtonAPI.QM
 
                 background.SetActive(true);
 
-                var bgImage = background.GetComponent<ImageEx>();
+                var bgImage = background.GetComponent<VRC.UI.ImageEx>();
                 if (bgImage == null)
                 {
                     OdiumConsole.Log("DebugUI", "Background image component not found");

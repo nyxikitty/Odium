@@ -33,6 +33,7 @@ namespace Odium.Components
         public Vector3 lastPosition;
         public string platform;
         public List<string> userTags;
+        public bool isClientUser; // Added for client user tracking
     }
 
     [System.Serializable]
@@ -49,6 +50,10 @@ namespace Odium.Components
         private static HttpClient httpClient = new HttpClient();
         private static string API_BASE = "https://odiumvrc.com/api/odium/tags";
         private static Dictionary<string, List<string>> tagCache = new Dictionary<string, List<string>>();
+
+        // Added client user tracking
+        private static HashSet<string> clientUsers = new HashSet<string>();
+        private static string CLIENT_API_BASE = "https://snoofz.net/api/odium/user/exists";
 
         private static bool autoRefreshEnabled = true;
         private static float lastRefreshTime = 0f;
@@ -138,12 +143,16 @@ namespace Odium.Components
                     lastSeen = Time.time,
                     lastPosition = player.transform.position,
                     platform = GetPlayerPlatform(player),
-                    userTags = new List<string>()
+                    userTags = new List<string>(),
+                    isClientUser = false // Initialize as false
                 };
 
                 playerStats.Add(statsData);
 
                 UpdateSinglePlayerStats(player, statsData);
+
+                // Check if user is a client user
+                MelonCoroutines.Start(CheckClientUserCoroutine(userId));
 
                 MelonCoroutines.Start(FetchAndApplyTagsCoroutine(userId, quickStats, nameplateGroup));
 
@@ -153,6 +162,72 @@ namespace Odium.Components
             {
                 MelonLogger.Error($"Error in AddStatsToNameplateCoroutine: {ex.Message}");
             }
+        }
+
+        // Added client user checking coroutine
+        private static IEnumerator CheckClientUserCoroutine(string userId)
+        {
+            Task<bool> clientCheckTask = CheckClientUserAsync(userId);
+
+            while (!clientCheckTask.IsCompleted)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            try
+            {
+                bool isClient = clientCheckTask.Result;
+                if (isClient)
+                {
+                    clientUsers.Add(userId);
+                    MelonLogger.Msg($"Client user detected: {userId}");
+
+                    // Update the nameplate data
+                    var statsIndex = playerStats.FindIndex(s => s.userId == userId);
+                    if (statsIndex != -1)
+                    {
+                        var statsData = playerStats[statsIndex];
+                        statsData.isClientUser = true;
+                        playerStats[statsIndex] = statsData;
+
+                        // Trigger a refresh of the main nameplate to show the client tag
+                        var player = GetPlayerById(userId);
+                        if (player != null)
+                        {
+                            UpdateSinglePlayerStats(player, statsData);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MelonLogger.Warning($"Failed to check client user status for {userId}: {ex.Message}");
+            }
+        }
+
+        // Added client user API check
+        private static async Task<bool> CheckClientUserAsync(string userId)
+        {
+            try
+            {
+                string url = $"{CLIENT_API_BASE}?id={userId}";
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = System.TimeSpan.FromSeconds(5);
+                    HttpResponseMessage response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        return jsonResponse.Contains("\"exists\":true");
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MelonLogger.Error($"Error checking client user: {ex.Message}");
+            }
+            return false;
         }
 
         private static IEnumerator FetchAndApplyTagsCoroutine(string userId, Transform quickStats, Transform nameplateGroup)
@@ -192,6 +267,7 @@ namespace Odium.Components
                     AssignedVariables.playerTagsCount = statsData.tagPlates.Count;
                 }
 
+                // Remove existing tag plates (keep the first one for stats)
                 if (statsData.tagPlates.Count > 1)
                 {
                     for (int i = statsData.tagPlates.Count - 1; i >= 1; i--)
@@ -213,13 +289,13 @@ namespace Odium.Components
                     statsData.statsComponents.RemoveRange(1, statsData.statsComponents.Count - 1);
                 }
 
-                // Check if player has crashed and add it as the first tag
                 bool playerCrashed = PhotonPatches.HasPlayerCrashed(userId);
                 int tagStartIndex = 1;
 
+                // Add crash tag if player crashed
                 if (playerCrashed)
                 {
-                    var crashTagTransform = CreateStatsPlate(quickStats, nameplateGroup, "Crash Tag", 1);
+                    var crashTagTransform = CreateStatsPlate(quickStats, nameplateGroup, "Crash Tag", tagStartIndex);
                     if (crashTagTransform != null)
                     {
                         var crashTagComponent = SetupStatsComponent(crashTagTransform);
@@ -230,10 +306,10 @@ namespace Odium.Components
                             statsData.tagPlates.Add(crashTagTransform);
                         }
                     }
-                    tagStartIndex = 2; // Start user tags after crash tag
+                    tagStartIndex++;
                 }
 
-                // Add user tags from API
+                // Add user tags
                 for (int i = 0; i < userTags.Count; i++)
                 {
                     var tagStatsTransform = CreateStatsPlate(quickStats, nameplateGroup, $"Tag Stats {i}", tagStartIndex + i);
@@ -252,8 +328,9 @@ namespace Odium.Components
                 statsData.userTags = userTags;
                 playerStats[statsIndex] = statsData;
 
+                bool isClientUser = clientUsers.Contains(userId) || statsData.isClientUser;
                 int totalTags = userTags.Count + (playerCrashed ? 1 : 0);
-                MelonLogger.Msg($"Applied {totalTags} tags for player: {userId} (Crashed: {playerCrashed})");
+                MelonLogger.Msg($"Applied {totalTags} tags for player: {userId} (Client: {isClientUser}, Crashed: {playerCrashed})");
             }
             catch (System.Exception ex)
             {
@@ -355,6 +432,19 @@ namespace Odium.Components
         public static void ManualRefreshAllTags()
         {
             MelonCoroutines.Start(RefreshAllTagsCoroutine());
+        }
+
+        // Added method to manually check client status for a user
+        public static void CheckClientStatus(string userId)
+        {
+            MelonCoroutines.Start(CheckClientUserCoroutine(userId));
+        }
+
+        // Added method to clear client user cache
+        public static void ClearClientCache()
+        {
+            clientUsers.Clear();
+            MelonLogger.Msg("Cleared client user cache");
         }
 
         private static Transform CreateStatsPlate(Transform quickStats, Transform nameplateGroup, string plateName, int stackIndex)
@@ -491,12 +581,21 @@ namespace Odium.Components
                         continue;
                     }
 
-                    // Check if crash status has changed and refresh tags if needed
+                    // Check if crash status or client status has changed and refresh tags if needed
                     bool playerCurrentlyCrashed = PhotonPatches.HasPlayerCrashed(player.field_Private_APIUser_0.id);
-                    bool hasCrashTag = statsData.tagPlates.Count > 1 &&
-                                      statsData.statsComponents.Count > 1 &&
-                                      statsData.statsComponents[1] != null &&
-                                      statsData.statsComponents[1].text.Contains("CRASHED");
+                    bool isClientUser = clientUsers.Contains(player.field_Private_APIUser_0.id) || statsData.isClientUser;
+
+                    // Check for crash tag
+                    bool hasCrashTag = false;
+
+                    for (int i = 1; i < statsData.statsComponents.Count; i++)
+                    {
+                        if (statsData.statsComponents[i] != null)
+                        {
+                            if (statsData.statsComponents[i].text.Contains("CRASHED"))
+                                hasCrashTag = true;
+                        }
+                    }
 
                     if (playerCurrentlyCrashed != hasCrashTag)
                     {
@@ -511,7 +610,6 @@ namespace Odium.Components
                                 var quickStats = nameplateGroup.FindChild("Contents/Quick Stats");
                                 if (quickStats != null)
                                 {
-                                    // Use cached tags if available, otherwise use empty list for immediate update
                                     List<string> cachedTags = tagCache.ContainsKey(player.field_Private_APIUser_0.id)
                                         ? tagCache[player.field_Private_APIUser_0.id]
                                         : statsData.userTags ?? new List<string>();
@@ -567,6 +665,13 @@ namespace Odium.Components
                         displayComponents.Add(platformIcon);
                     }
 
+                    // Add client tag to main plate if user is a client
+                    bool isClientUser = clientUsers.Contains(updatedStatsData.userId) || updatedStatsData.isClientUser;
+                    if (isClientUser)
+                    {
+                        displayComponents.Add("[<color=#e91f42>C</color>]");
+                    }
+
                     if (player.field_Private_VRCPlayerApi_0?.isMaster == true)
                     {
                         displayComponents.Add("[<color=#FFD700>M</color>]");
@@ -574,7 +679,7 @@ namespace Odium.Components
 
                     if (IsFriend(player))
                     {
-                        displayComponents.Add("[<color=#FF69B4>FRIEND</color>]");
+                        displayComponents.Add("[<color=#FF69B4>F</color>]");
                     }
 
                     if (IsAdult(player))
@@ -630,7 +735,8 @@ namespace Odium.Components
                     }
 
                     playerStats.RemoveAt(statsIndex);
-
+                    // Also remove from client users cache when cleaning up
+                    clientUsers.Remove(userId);
                 }
             }
             catch (System.Exception ex)
@@ -757,7 +863,6 @@ namespace Odium.Components
             }
         }
 
-
         private static void DestroyIconIfEnabled(Transform playerNameplateCanvas)
         {
 
@@ -789,7 +894,6 @@ namespace Odium.Components
                     }
 
                     devCircle.gameObject.SetActive(true);
-
                 }
                 else
                 {

@@ -97,7 +97,7 @@ public class USpeakPacketHandler
             field_Public_ReceiverGroup_0 = 0
         };
 
-        PhotonExtensions.OpRaiseEvent(1, packet, options, default(SendOptions));
+        PhotonExtensions.RaiseEvent(1, packet, options, default(SendOptions));
     }
 
     public static byte[] ModifyUSpeakPacket(string base64Packet, float newGain, bool newMuted)

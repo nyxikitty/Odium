@@ -23,7 +23,7 @@ using MelonLoader;
 
 namespace Odium.UX
 {
-    internal class MainMenu
+    public class MainMenu
     {
         public static GameObject ExampleButton;
         public static GameObject AdBanner, QuickLinksHeader, QuickActionsHeader;
@@ -337,7 +337,7 @@ namespace Odium.UX
                 var rectTransform = background.gameObject.GetComponent<RectTransform>();
                 if (rectTransform != null)
                 {
-                    // Reduced height from 480 to 280 (200 pixel reduction)
+                    // Keep existing background size - DO NOT CHANGE
                     rectTransform.sizeDelta = new UnityEngine.Vector2(725, 380);
                     rectTransform.transform.localPosition = new UnityEngine.Vector2(0, -50);
                 }
@@ -345,13 +345,10 @@ namespace Odium.UX
                 var renderComponent = background.gameObject.GetComponent<Image>();
                 if (renderComponent != null)
                 {
-
                     string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "Odium", "QMConsole.png");
                     var sprite = SpriteLoader.LoadFromDisk(logoPath);
-
                     renderComponent.overrideSprite = sprite;
                 }
-
             }
 
             var icons = consoleClone.transform.FindChild("Icons");
@@ -359,7 +356,6 @@ namespace Odium.UX
             {
                 icons.gameObject.SetActive(false);
             }
-
 
             var badge = consoleClone.transform.FindChild("Badge_MMJump");
             if (badge != null)
@@ -373,13 +369,17 @@ namespace Odium.UX
                 var rectTransform = text.gameObject.GetComponent<RectTransform>();
                 if (rectTransform != null)
                 {
-                    rectTransform.localPosition = new UnityEngine.Vector3(0, 250, 0);
-                    rectTransform.sizeDelta = new UnityEngine.Vector2(650, 100);
+                    // Position text inside the blue console border
+                    rectTransform.localPosition = new UnityEngine.Vector3(0, 40, 0);
+                    rectTransform.sizeDelta = new UnityEngine.Vector2(680, 280);
                 }
 
                 TextMeshProUGUIEx textMesh = text.gameObject.GetComponent<TextMeshProUGUIEx>();
                 textMesh.alignment = TextAlignmentOptions.TopLeft;
                 textMesh.richText = true;
+                textMesh.enableWordWrapping = true;
+                textMesh.fontSize = 14f; // Bigger font size
+                textMesh.lineSpacing = -10f; // Less tight line spacing
                 textMesh.prop_String_0 = "";
             }
 
@@ -430,13 +430,13 @@ namespace Odium.UX
 
         public static void LogIntoConsole(string txt, string type = "<color=#8d142b>[Log]</color>", string color = "8d142b")
         {
-            var time = DateTime.Now.ToString("HH:mm");
+            var time = DateTime.Now.ToString("HH:mm:ss");
             var sb = new StringBuilder();
-            sb.Append($" <size=19><color=#{color}>[{time}]</color> ");
+            sb.Append($"<size=14><color=#{color}>[{time}]</color> ");
             sb.Append(type);
             sb.Append(" ");
             sb.Append(txt);
-            sb.Append("</color>");
+            sb.Append("</size>");
 
             ConsoleLogCache.Add(sb.ToString());
         }
@@ -445,18 +445,16 @@ namespace Odium.UX
         {
             try
             {
-                if (ConsoleLogCache.Count > 19)
+                if (ConsoleLogCache.Count > 25)
                 {
-                    ConsoleLogCache.RemoveRange(0, ConsoleLogCache.Count - 21);
+                    ConsoleLogCache.RemoveRange(0, ConsoleLogCache.Count - 25);
                 }
 
-                int paddingLines = 20 - ConsoleLogCache.Count;
-                var logs = new StringBuilder("\n\n");
-                for (int i = 0; i < paddingLines; i++) logs.AppendLine();
+                var logs = new StringBuilder();
 
                 foreach (var entry in ConsoleLogCache)
                 {
-                    logs.AppendLine(entry + "</color>");
+                    logs.AppendLine(entry);
                 }
 
                 MainMenu.ConsoleObject.SetActive(false);
@@ -466,21 +464,23 @@ namespace Odium.UX
                     var rectTransform = text.gameObject.GetComponent<RectTransform>();
                     if (rectTransform != null)
                     {
-                        rectTransform.localPosition = new UnityEngine.Vector3(0, 180, 0);
-                        rectTransform.sizeDelta = new UnityEngine.Vector2(650, 100);
+                        rectTransform.localPosition = new UnityEngine.Vector3(0, 40, 0);
+                        rectTransform.sizeDelta = new UnityEngine.Vector2(680, 280);
                     }
 
                     TextMeshProUGUIEx textMesh = text.gameObject.GetComponent<TextMeshProUGUIEx>();
                     textMesh.alignment = TextAlignmentOptions.TopLeft;
                     textMesh.richText = true;
                     textMesh.enableWordWrapping = true;
+                    textMesh.fontSize = 14f;
+                    textMesh.lineSpacing = -10f;
+                    textMesh.overflowMode = TextOverflowModes.Overflow;
                     textMesh.prop_String_0 = logs.ToString();
                 }
                 MainMenu.ConsoleObject.SetActive(true);
             }
             catch (Exception ex)
             {
-
             }
         }
     }

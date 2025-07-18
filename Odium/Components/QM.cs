@@ -23,7 +23,7 @@ using Odium.IUserPage.MM;
 
 namespace Odium.Components
 {
-    class QM
+    public class QM
     {
         public static List<string> ObjectsToFind = new List<string>
         {
@@ -114,6 +114,7 @@ namespace Odium.Components
                 AppBot.InitializePage(nestedMenus[4], buttonImage, halfButtonImage);
                 Visuals.InitializePage(nestedMenus[5], buttonImage);
                 GameHacks.InitializePage(nestedMenus[6], buttonImage);
+                Protections.InitializePage(nestedMenus[7], buttonImage);
 
                 Functions.Initialize();
                 WorldFunctions.Initialize();

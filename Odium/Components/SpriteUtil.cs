@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace Odium.Components
 {
-    class SpriteUtil
+    public class SpriteUtil
     {
         public static Texture2D CreateTextureFromBase64(string base64)
         {

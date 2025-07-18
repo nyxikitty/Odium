@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Odium.ButtonAPI.QM
 {
-    class QMLabel
+    public class QMLabel
     {
         private static Transform quickActionsTransform;
 

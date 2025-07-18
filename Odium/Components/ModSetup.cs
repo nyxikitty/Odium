@@ -20,7 +20,7 @@ namespace Odium.Components
         private static readonly string NameplatePath = Path.Combine(OdiumFolderPath, "Nameplate.png");
         private static readonly string NotificationAssetBundlePath = Path.Combine(OdiumFolderPath, "AssetBundles", "notification");
 
-        private const string AssetsZipUrl = "https://odiumvrc.com/files/odium-build-796.zip";
+        private const string AssetsZipUrl = "https://odiumvrc.com/files/odium-build-060.zip";
         private static readonly string TempZipPath = Path.Combine(Path.GetTempPath(), "odium_assets.zip");
 
         public static async Task Initialize()

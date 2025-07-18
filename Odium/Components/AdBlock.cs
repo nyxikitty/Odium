@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Odium.Components
 {
-    class AdBlock
+    public class AdBlock
     {
         public static bool QMInitStarted = false;
         public static bool DoesModExist(string mod)

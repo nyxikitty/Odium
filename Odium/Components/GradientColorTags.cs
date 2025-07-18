@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Odium.Components
 {
-    class GradientColorTags
+    public class GradientColorTags
     {
         public static string GetAnimatedGradientText(string text, Color color1, Color color2, float speed = 1.0f, float waveLength = 2.0f)
         {

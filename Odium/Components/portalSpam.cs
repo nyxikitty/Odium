@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Odium.Modules
 {
-    internal class portalSpam
+    public class portalSpam
     {
         public static DateTime LastPortalSpawn = DateTime.Now;
         public static void OnUpdate()

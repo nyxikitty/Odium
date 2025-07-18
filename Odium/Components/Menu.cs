@@ -15,12 +15,12 @@ public static class ToggleStateManager
 {
     public static Dictionary<string, bool> ToggleStates = new Dictionary<string, bool>();
 }
-internal class SelectedUser
+public class SelectedUser
 {
     public static bool ui_ready = false;
     public static GameObject PageGrid;
 
-    private static string get_selected_player_name()
+    public static string get_selected_player_name()
     {
         var textObject = GameObject.Find("UserInterface/Canvas_QuickMenu(Clone)/CanvasGroup/Container/Window/QMParent/Menu_SelectedUser_Local/ScrollRect/Viewport/VerticalLayoutGroup/UserProfile_Compact/PanelBG/Info/Text_Username_NonFriend");
         if (textObject == null) return "";
