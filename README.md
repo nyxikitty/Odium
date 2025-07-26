@@ -1,4 +1,4 @@
-# [Your Mod Name] - Now Open Source
+# Odium - Now Open Source
 
 ## Why This Mod is Now Open Source
 
