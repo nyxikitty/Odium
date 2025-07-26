@@ -1,6 +1,9 @@
 ﻿using ExitGames.Client.Photon;
 using HarmonyLib;
+using Odium.API;
 using Odium.ApplicationBot;
+using Odium.Components;
+using Odium.Odium;
 using Odium.UX;
 using Odium.Wrappers;
 using Photon.Pun;
@@ -13,55 +16,56 @@ using System.Reflection;
 using System.Text;
 using UnhollowerBaseLib;
 using UnhollowerRuntimeLib;
+using VRC.SDKBase;
 
 namespace Odium.Patches
 {
-    [HarmonyPatch(typeof(LoadBalancingClient))]
-    public class PhotonNetworkPatches
+    public static class RaiseEventPatches
     {
-        [HarmonyPrefix]
-        [HarmonyPatch("Method_Public_Virtual_New_Boolean_Byte_Object_RaiseEventOptions_SendOptions_0")]
-        static bool PrefixSendEvent(byte __0, Il2CppSystem.Object __1, RaiseEventOptions __2, SendOptions __3)
+        public static void ApplyPatches()
         {
-            if (__0 == 12 && ActionWrapper.serialize || Bot.movementMimic)
+            OdiumEntry.HarmonyInstance.Patch(
+                typeof(LoadBalancingClient).GetMethod(
+                    nameof(LoadBalancingClient.Method_Public_Virtual_New_Boolean_Byte_Object_RaiseEventOptions_SendOptions_0),
+                    BindingFlags.Public | BindingFlags.Instance
+                ),
+                prefix: new HarmonyMethod(typeof(RaiseEventPatches).GetMethod(nameof(PrefixSendEvent), BindingFlags.Static | BindingFlags.Public))
+            );
+
+            OdiumConsole.Log("RaiseEventPatches", "Applied RaiseEvent patches successfully.");
+        }
+
+        public static bool PrefixSendEvent(byte param_1, Il2CppSystem.Object param_2, RaiseEventOptions param_3, SendOptions param_4)
+        {
+            if (AssignedVariables.conduit)
             {
-                return false;
+                if (param_1 == 1 && AssignedVariables.clientTalk)
+                {
+                    byte[] e = Serializer.FromIL2CPPToManaged<byte[]>(param_2);
+                    EventHandlers.SendAudio(e, Networking.LocalPlayer.playerId);
+                    return false;
+                }
+
+                if (param_1 == 74 && AssignedVariables.proxyPortals)
+                {
+                    byte[] e = Serializer.FromIL2CPPToManaged<byte[]>(param_2);
+                    EventHandlers.DropPortal(e, Networking.LocalPlayer.playerId);
+
+                    return false;
+                }
+
+                if (param_1 == 12 && AssignedVariables.proxyMovement)
+                {
+                    byte[] e = Serializer.FromIL2CPPToManaged<byte[]>(param_2);
+                    EventHandlers.SendMovement(e, Networking.LocalPlayer.playerId);
+
+                    return false;
+                }
             }
 
-            if (__0 != 43) return true;
-            try
+            if (param_1 == 12 && ActionWrapper.serialize || Bot.movementMimic)
             {
-                if (__1 != null)
-                {
-                    if (__1.TryCast<Il2CppSystem.Array>() != null)
-                    {
-                        var array = __1.TryCast<Il2CppSystem.Array>();
-                        if (array.Length > 1)
-                        {
-                            for (global::System.Int32 i = 0; i < array.Length; i++)
-                            {
-                                var element = array.GetValue(i);
-                                OdiumConsole.LogGradient("PhotonEvent", element?.ToString() ?? "null");
-                            }
-                        }
-                        else
-                        {
-                            OdiumConsole.LogGradient("PhotonEvent", "Array too short");
-                        }
-                    }
-                    else
-                    {
-                        OdiumConsole.LogGradient("PhotonEvent", __1.ToString());
-                    }
-                }
-                else
-                {
-                    OdiumConsole.LogGradient("PhotonEvent", "Event data is null");
-                }
-            }
-            catch (Exception ex)
-            {
-                OdiumConsole.Log("PhotonEvent", $"Error logging Photon event 43: {ex.Message}", LogLevel.Error);
+                return false;
             }
 
             return true;

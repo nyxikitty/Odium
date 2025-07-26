@@ -21,6 +21,14 @@ namespace Odium.Odium
         public static bool autoDroneCrash = false;
         public static bool instanceLock = false;
         public static bool chatBoxAntis = true;
+        public static bool clientTalk = false;
+        public static bool proxyPortals = false;
+        public static bool proxyMovement = false;
+        public static bool conduit = false;
+        public static bool debugUI = false;
+        public static bool playerlistUI = false;
+        public static bool customNameplates = false;
+        public static bool plateStats = false;
         public static int playerTagsCount = 0;
         public static int odiumUsersCount = 0;
         public static bool adminSpoof = false;
@@ -30,5 +38,11 @@ namespace Odium.Odium
         public static bool preventM4EventSpam = true;
         public static bool ratelimitM4Events = true;
 
+        // Debug logging toggles for Udon event filtering
+        public static bool udonParamCheck = false;
+        public static bool udonDictCheck = false;
+        public static bool dataTypeCheck = false;
+        public static bool filterViewIds = false;
+        public static bool udonDataCheck = false;
     }
 }

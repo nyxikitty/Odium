@@ -48,63 +48,13 @@ namespace Odium.Patches
                     }
                     break;
                 case 1:
-                    // Will be added back soon
-
-                    //byte[] e = Serializer.Il2ToByteArray(param_1.CustomData);
-                    //byte[] result = new byte[e.Length - 4];
-                    //Array.Copy(e, 4, result, 0, e.Length - 4);
-                    //string base64 = Convert.ToBase64String(result);
-
-                    //string debugBytes = string.Join(" ", Array.ConvertAll(result.Take(16).ToArray(), b => b.ToString("X2")));
-                    //OdiumConsole.Log("USpeak", $"First 16 bytes: {debugBytes}");
-                    //OdiumConsole.Log("USpeak", $"Packet length: {result.Length}");
-
-                    //VRC.Player plr = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
-                    //PhotonPatches.UpdatePlayerActivity(param_1.sender, eventCode);
-
-                    //var parsed = USpeakPacketHandler.ParseUSpeakPacket(result);
-                    //OdiumConsole.Log("USpeak", $@"{base64} - Gain: {parsed.gain}, Flags: {parsed.flags:X2}, Timestamp: {parsed.timestamp}");
-
-                    //if (parsed.gain > 135)
-                    //{
-                    //    if (!PhotonPatches.blockedUSpeakPacketCount.ContainsKey(param_1.sender))
-                    //    {
-                    //        PhotonPatches.blockedUSpeakPacketCount[param_1.sender] = 0;
-                    //        PhotonPatches.blockedUSpeakPackets[param_1.sender] = 0;
-                    //    }
-
-                    //    PhotonPatches.blockedUSpeakPacketCount[param_1.sender]++;
-                    //    PhotonPatches.blockedUSpeakPackets[param_1.sender]++;
-
-                    //    if (PhotonPatches.blockedUSpeakPacketCount[param_1.sender] == 1)
-                    //    {
-                    //        VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
-                    //        InternalConsole.LogIntoConsole($"<color=red>Blocked USpeak packet from user -> {player.field_Private_APIUser_0.displayName}</color>", "[OdiumProtection]");
-                    //        ToastBase.Toast("Odium Protection", $"Potentially harmful event blocked from user '{player.field_Private_APIUser_0.displayName}' (Reason: USpeak Spam)", PhotonPatches.LogoIcon, 5);
-                    //    }
-                    //    else if (PhotonPatches.blockedUSpeakPackets[param_1.sender] == 200)
-                    //    {
-                    //        VRC.Player player = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
-                    //        InternalConsole.LogIntoConsole(
-                    //            $"<color=red>Blocked {PhotonPatches.blockedUSpeakPacketCount[param_1.sender]} total USpeak packets from user -> {player.field_Private_APIUser_0.displayName}</color>"
-                    //        );
-                    //        ToastBase.Toast("Odium Protection", $"Potentially harmful event blocked from user '{player.field_Private_APIUser_0.displayName}' (Reason: USpeak Spam)", PhotonPatches.LogoIcon, 5);
-
-                    //        PhotonPatches.blockedUSpeakPackets[param_1.sender] = 0;
-                    //    }
-                    //    return false;
-                    //}
-                    //else
-                    //{
-                    //    return true;
-                    //}
                     break;
                 case 18:
                     try
                     {
                         if (param_1?.Parameters == null || !param_1.Parameters.ContainsKey(param_1.CustomDataKey))
                         {
-                            InternalConsole.LogIntoConsole($"[BLOCK] Invalid event parameters - Parameters null: {param_1?.Parameters == null}, Missing key: {!param_1?.Parameters?.ContainsKey(param_1.CustomDataKey)}");
+                            if (AssignedVariables.udonParamCheck) InternalConsole.LogIntoConsole($"[BLOCK] Invalid event parameters - Parameters null: {param_1?.Parameters == null}, Missing key: {!param_1?.Parameters?.ContainsKey(param_1.CustomDataKey)}");
                             return false;
                         }
 
@@ -112,7 +62,7 @@ namespace Odium.Patches
 
                         if (dictionary == null || !dictionary.ContainsKey(0) || !dictionary.ContainsKey(1) || !dictionary.ContainsKey(2))
                         {
-                            InternalConsole.LogIntoConsole($"[BLOCK] Missing required dictionary keys - Dict null: {dictionary == null}, Has key 0: {dictionary?.ContainsKey(0)}, Has key 1: {dictionary?.ContainsKey(1)}, Has key 2: {dictionary?.ContainsKey(2)}");
+                            if (AssignedVariables.udonDictCheck) InternalConsole.LogIntoConsole($"[BLOCK] Missing required dictionary keys - Dict null: {dictionary == null}, Has key 0: {dictionary?.ContainsKey(0)}, Has key 1: {dictionary?.ContainsKey(1)}, Has key 2: {dictionary?.ContainsKey(2)}");
                             return false;
                         }
 
@@ -120,13 +70,13 @@ namespace Odium.Patches
                             !PhotonPatches.TryUnboxByte(dictionary[0], out byte eventType) ||
                             !PhotonPatches.TryUnboxInt(dictionary[1], out int eventHashInt))
                         {
-                            InternalConsole.LogIntoConsole($"[BLOCK] Invalid data types - viewId unbox: {PhotonPatches.TryUnboxInt(dictionary[2], out _)}, eventType unbox: {PhotonPatches.TryUnboxByte(dictionary[0], out _)}, eventHash unbox: {PhotonPatches.TryUnboxInt(dictionary[1], out _)}");
+                            if (AssignedVariables.dataTypeCheck) InternalConsole.LogIntoConsole($"[BLOCK] Invalid data types - viewId unbox: {PhotonPatches.TryUnboxInt(dictionary[2], out _)}, eventType unbox: {PhotonPatches.TryUnboxByte(dictionary[0], out _)}, eventHash unbox: {PhotonPatches.TryUnboxInt(dictionary[1], out _)}");
                             return false;
                         }
 
                         if (viewId < 0 || viewId > 999999)
                         {
-                            InternalConsole.LogIntoConsole($"[BLOCK] Suspicious viewId: {viewId} (range: 0-999999)");
+                            if (AssignedVariables.filterViewIds) InternalConsole.LogIntoConsole($"[BLOCK] Suspicious viewId: {viewId} (range: 0-999999)");
                             return false;
                         }
 
@@ -135,7 +85,7 @@ namespace Odium.Patches
                             PhotonView photonView = PhotonView.Method_Public_Static_PhotonView_Int32_0(viewId);
                             if (photonView == null || photonView.gameObject == null)
                             {
-                                InternalConsole.LogIntoConsole($"[BLOCK] Invalid PhotonView for viewId: {viewId} - PhotonView null: {photonView == null}, GameObject null: {photonView?.gameObject == null}");
+                                if (AssignedVariables.filterViewIds) InternalConsole.LogIntoConsole($"[BLOCK] Invalid PhotonView for viewId: {viewId} - PhotonView null: {photonView == null}, GameObject null: {photonView?.gameObject == null}");
                                 return false;
                             }
 
@@ -151,7 +101,7 @@ namespace Odium.Patches
                             VRC.Player vrcPlayer = PlayerWrapper.GetVRCPlayerFromActorNr(param_1.sender);
                             if (vrcPlayer?.field_Private_APIUser_0 == null)
                             {
-                                InternalConsole.LogIntoConsole($"[BLOCK] Invalid player data - Player null: {vrcPlayer == null}, APIUser null: {vrcPlayer?.field_Private_APIUser_0 == null}");
+                                if (AssignedVariables.udonDataCheck) InternalConsole.LogIntoConsole($"[BLOCK] Invalid player data - Player null: {vrcPlayer == null}, APIUser null: {vrcPlayer?.field_Private_APIUser_0 == null}");
                                 return false;
                             }
 

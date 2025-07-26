@@ -24,16 +24,22 @@ namespace Odium.ButtonAPI.QM
         public static GameObject label;
         public static GameObject background;
         public static TextMeshProUGUI text;
-        
+
         // Cached values to prevent rapid updates
         private static string cachedPing = "0";
         private static string cachedFPS = "0";
         private static string cachedBuild = "Unknown";
-        private static int cachedPlayerTags = 0;
-        private static int cachedOdiumUsers = 0;
-        
+        public static int cachedPlayerTags = 0;
+        public static int cachedOdiumUsers = 0;
+        public static int activeRoomCount = 0;
+        public static long msResponse = 0;
+        public static bool isConnectedToServer = false;
+
         // Flag to prevent external updates
         private static bool isUpdating = false;
+
+        // Visibility state
+        private static bool isVisible = true;
 
         public static async void InitializeDebugMenu()
         {
@@ -172,6 +178,66 @@ namespace Odium.ButtonAPI.QM
             }
         }
 
+        /// <summary>
+        /// Toggles the visibility of the entire Debug UI
+        /// </summary>
+        public static void ToggleVisibility()
+        {
+            try
+            {
+                isVisible = !isVisible;
+
+                if (label != null)
+                {
+                    label.SetActive(isVisible);
+                    OdiumConsole.Log("DebugUI", $"Debug UI visibility toggled to: {isVisible}");
+                }
+                else
+                {
+                    OdiumConsole.Log("DebugUI", "Cannot toggle visibility - Debug UI not initialized");
+                }
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("DebugUI", $"Failed to toggle visibility: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sets the visibility of the Debug UI to a specific state
+        /// </summary>
+        /// <param name="visible">True to show, false to hide</param>
+        public static void SetVisibility(bool visible)
+        {
+            try
+            {
+                isVisible = visible;
+
+                if (label != null)
+                {
+                    label.SetActive(isVisible);
+                    OdiumConsole.Log("DebugUI", $"Debug UI visibility set to: {isVisible}");
+                }
+                else
+                {
+                    OdiumConsole.Log("DebugUI", "Cannot set visibility - Debug UI not initialized");
+                }
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("DebugUI", $"Failed to set visibility: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Gets the current visibility state of the Debug UI
+        /// </summary>
+        /// <returns>True if visible, false if hidden</returns>
+        public static bool IsVisible()
+        {
+            return isVisible && label != null && label.activeInHierarchy;
+        }
+
         public static IEnumerator UpdateLoop()
         {
             while (true)
@@ -180,15 +246,14 @@ namespace Odium.ButtonAPI.QM
                 yield return MelonCoroutines.Start(GetUserCountCoroutine());
 
                 isUpdating = true;
-                
+
                 cachedPing = ApiUtils.GetPing();
                 cachedFPS = ApiUtils.GetFPS();
                 cachedBuild = ApiUtils.GetBuild();
                 cachedPlayerTags = AssignedVariables.playerTagsCount;
-                cachedOdiumUsers = AssignedVariables.odiumUsersCount;
-                                
+
                 UpdateDisplay();
-                
+
                 isUpdating = false;
             }
         }
@@ -206,25 +271,25 @@ namespace Odium.ButtonAPI.QM
             if (text != null)
             {
                 text.text = $@"
-Subscription: <color=green>Active</color>
+License Type: Private
 
-Player Tags: <color=#e91f42>{cachedPlayerTags}</color>
+License Duration: Lifetime
 
-Odium Users: <color=#e91f42>{cachedOdiumUsers}</color>
+Player Tags: {cachedPlayerTags}
 
-Duration: <color=#e91f42>Lifetime</color>
+Active Users: {cachedOdiumUsers}
 
-Ping: <color=#e91f42>{cachedPing}</color>
+Active Rooms: {activeRoomCount}
 
-FPS: <color=#e91f42>{cachedFPS}</color>
+Build: Beta-1.6-{cachedBuild}
 
-Build: <color=#e91f42>{cachedBuild}</color>
+Server: {msResponse}ms
 
-Server: <color=#e91f42>Connected</color>
+Client: Connected
 
-Client: <color=#e91f42>Connected</color>
+Ping: {cachedPing}
 
-Drones: <color=#e91f42>0</color>
+FPS: {cachedFPS}
         ";
             }
         }

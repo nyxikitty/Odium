@@ -95,23 +95,14 @@ namespace Odium.ApplicationBot
 
             { "ChatBoxLagger", (boolean, botId) => {
                 if (botId == BotId) {
-                if (!AssignedVariables.chatboxLagger)
-                {
-                    InternalConsole.LogIntoConsole("Chatbox lagger was enabled!");
-                    AssignedVariables.chatboxLagger = true;
-                    chatboxLaggerCoroutine = MelonCoroutines.Start(OptimizedChatboxLaggerCoroutine());
-                } else
-                {
-                    InternalConsole.LogIntoConsole("Chatbox lagger was disabled!");
-                    AssignedVariables.chatboxLagger = false;
-
-                    if (chatboxLaggerCoroutine != null)
+                    if (!AssignedVariables.chatboxLagger)
                     {
-                        MelonCoroutines.Stop(chatboxLaggerCoroutine);
-                        chatboxLaggerCoroutine = null;
-                    }
-
-                    preGeneratedMessages.Clear();
+                        InternalConsole.LogIntoConsole("Chatbox lagger was enabled!");
+                        AssignedVariables.chatboxLagger = true;
+                    } else
+                    {
+                        InternalConsole.LogIntoConsole("Chatbox lagger was disabled!");
+                        AssignedVariables.chatboxLagger = false;
                     }
                 }
             } },
@@ -151,6 +142,20 @@ namespace Odium.ApplicationBot
             { "SetTargetFramerate", (Framerate, botId) => {
                 if (int.TryParse(Framerate, out int n))
                     Application.targetFrameRate = n;
+            } },
+
+            { "ChangeAvatar", (avatarId, botId) => {
+                if (botId == BotId) {
+                    SimpleAvatarPedestal pedestal = new SimpleAvatarPedestal();
+                    pedestal.Method_Private_Void_ApiAvatar_0(new ApiAvatar
+                    {
+                        id = "avtr_63f6f843-c894-4936-b613-650961b4cae0",
+                        name = "OdiumBotAvatar",
+                        authorName = "OdiumBot",
+                        imageUrl = "https://api.vrchat.cloud/api/1/image/file_c13cebe8-4c02-4a6c-8eec-dead81595570/1/512"
+                    });
+                    pedestal.Method_Public_Void_0();
+                }
             } },
 
             // New command to set orbit offset

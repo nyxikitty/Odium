@@ -138,66 +138,6 @@ namespace Odium.UX
                 ExampleButton.SetActive(false);
                 // InitPage();
 
-                GameObject originalButton = GameObject.Find("UserInterface/Canvas_MainMenu(Clone)/Container/PageButtons/HorizontalLayoutGroup/Marketplace_Button_Tab");
-
-                GameObject newButton = GameObject.Instantiate(originalButton, originalButton.transform.parent);
-
-                newButton.name = "Heart_Button_Tab";
-
-                Transform iconTransform = newButton.transform.Find("Icon");
-                if (iconTransform != null)
-                {
-                    GameObject iconGameObject = iconTransform.gameObject;
-                    Image imageEx = iconGameObject.GetComponent<Image>();
-                    if (imageEx != null)
-                    {
-                        string LogoPath = Path.Combine(Directory.GetCurrentDirectory(), "Odium", "OdiumIcon.png");
-                        Sprite Logo = SpriteUtil.LoadFromDisk(LogoPath);
-                        imageEx.sprite = Logo;
-                    }
-                }
-
-                Transform textTransform = newButton.transform.Find("Text_H4");
-                if (textTransform != null)
-                {
-                    GameObject textGameObject = textTransform.gameObject;
-                    TextMeshProUGUIEx textEx = textGameObject.GetComponent<TextMeshProUGUIEx>();
-                    if (textEx != null)
-                    {
-                        textEx.text = "Odium Client";
-                    }
-                }
-
-                var uselessComponent = newButton.GetComponent<VRC.UI.Client.Marketplace.SubscriptionNotifierComponent>();
-                if (uselessComponent != null)
-                {
-                    uselessComponent.enabled = false;
-                }
-
-                MenuInstance = GameObject.Find("UserInterface/Canvas_MainMenu(Clone)");
-
-                var originalPage = GameObject.Find("UserInterface/Canvas_MainMenu(Clone)/Container/MMParent/HeaderOffset/Menu_MM_Marketplace");
-                var CustomPage = GameObject.Instantiate(originalPage, originalPage.transform.parent);
-                var CustomPageComponent = CustomPage.GetComponent<MonoBehaviour1PublicOb_sGa_ppaObwapuBuObUnique>();
-
-                var MenuControllerObject = GameObject.Find("UserInterface/Canvas_MainMenu(Clone)");
-                var MenuController = MenuControllerObject.GetComponent<VRC.UI.Controls.MenuStateController>();
-                MenuController.field_Private_Dictionary_2_String_UIPage_0.Add("XD", CustomPageComponent);
-                MenuController.field_Private_HashSet_1_UIPage_0.Add(CustomPageComponent);
-
-                var menuTab = newButton.GetComponent<VRC.UI.Elements.Controls.MenuTab>();
-                menuTab._sendAnalytics = false;
-                menuTab.prop_String_0 = "Odium";
-
-                UnityEngine.UI.Button button = newButton.GetComponent<UnityEngine.UI.Button>();
-                if (button != null)
-                {
-                    button.onClick.RemoveAllListeners();
-
-                    button.onClick.AddListener(new Action(() => {
-                        CustomPage.SetActive(true);
-                    }));
-                }
             }
 
             if (ConsoleObject != null)

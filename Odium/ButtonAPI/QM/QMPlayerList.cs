@@ -30,6 +30,7 @@ namespace Odium.ButtonAPI.QM
         public static List<string> messageList = new List<string>();
         private static string displayText = "";
         private static object playerListCoroutine;
+        private static bool isVisible = true;
 
         private static readonly Dictionary<string, Color> keywordColors = new Dictionary<string, Color>
         {
@@ -198,6 +199,93 @@ namespace Odium.ButtonAPI.QM
                 MelonCoroutines.Stop(playerListCoroutine);
                 playerListCoroutine = null;
             }
+        }
+
+        public static void ToggleVisibility()
+        {
+            try
+            {
+                if (label == null)
+                {
+                    OdiumConsole.Log("DebugUI", "Cannot toggle visibility - UI not initialized");
+                    return;
+                }
+
+                isVisible = !isVisible;
+                label.SetActive(isVisible);
+
+                OdiumConsole.Log("DebugUI", $"UI visibility toggled to: {(isVisible ? "Visible" : "Hidden")}");
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("DebugUI", $"Failed to toggle visibility: {ex.Message}");
+            }
+        }
+
+        public static void ShowUI()
+        {
+            try
+            {
+                if (label == null)
+                {
+                    OdiumConsole.Log("DebugUI", "Cannot show UI - not initialized");
+                    return;
+                }
+
+                isVisible = true;
+                label.SetActive(true);
+                OdiumConsole.Log("DebugUI", "UI shown");
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("DebugUI", $"Failed to show UI: {ex.Message}");
+            }
+        }
+
+        public static void HideUI()
+        {
+            try
+            {
+                if (label == null)
+                {
+                    OdiumConsole.Log("DebugUI", "Cannot hide UI - not initialized");
+                    return;
+                }
+
+                isVisible = false;
+                label.SetActive(false);
+                OdiumConsole.Log("DebugUI", "UI hidden");
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("DebugUI", $"Failed to hide UI: {ex.Message}");
+            }
+        }
+
+        public static void SetVisibility(bool visible)
+        {
+            try
+            {
+                if (label == null)
+                {
+                    OdiumConsole.Log("DebugUI", "Cannot set visibility - UI not initialized");
+                    return;
+                }
+
+                isVisible = visible;
+                label.SetActive(visible);
+
+                OdiumConsole.Log("DebugUI", $"UI visibility set to: {(visible ? "Visible" : "Hidden")}");
+            }
+            catch (Exception ex)
+            {
+                OdiumConsole.Log("DebugUI", $"Failed to set visibility: {ex.Message}");
+            }
+        }
+
+        public static bool IsVisible()
+        {
+            return label != null && isVisible && label.activeInHierarchy;
         }
 
         public static void AdjustPosition(float x, float y, float z)
@@ -396,6 +484,7 @@ namespace Odium.ButtonAPI.QM
             text = null;
             messageList.Clear();
             displayText = "";
+            isVisible = true;
         }
     }
 

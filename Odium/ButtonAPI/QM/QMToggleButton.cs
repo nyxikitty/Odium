@@ -65,7 +65,7 @@ namespace Odium.ButtonAPI.QM
             if (bgImage != null)
             {
                 ToggleBackgroundImage(true);
-                SetBackgroundImage(bgImage);
+                // SetBackgroundImage(bgImage);
             }
             else
             {

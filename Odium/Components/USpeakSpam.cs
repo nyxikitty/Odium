@@ -1,5 +1,6 @@
 ﻿using ExitGames.Client.Photon;
 using MelonLoader;
+using Odium.Odium;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +31,7 @@ namespace Odium.Components
         {
             while (isEnabled)
             {
+                if (AssignedVariables.conduit) yield return null;
                 byte[] array = Convert.FromBase64String("AAAAAGfp+Lv2GRkA+MrI08yxTwBkxqwATk9LRU0wTk9LM00wTg==");
 
                 // This is for older packets, remove the first 4 bytes because they handle actorNr on the server now

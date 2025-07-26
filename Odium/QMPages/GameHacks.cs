@@ -28,12 +28,12 @@ namespace Odium.QMPages
             Sprite WorldIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\WorldIcon.png");
             Sprite FTACIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\FTAC.png");
 
-            QMNestedMenu murder4NestedMenu = new QMNestedMenu(gameHacks, 1, 0, "<color=#8d142b>Murder 4</color>", "<color=#8d142b>Murder 4</color>", "Opens Select User menu", false, M4Icon, buttonImage);
-            QMNestedMenu winTriggers = new QMNestedMenu(murder4NestedMenu, 1, 0, "<color=#8d142b>Win Triggers</color>", "<color=#8d142b>Win Triggers</color>", "Opens Select User menu", false, WinIcon, buttonImage);
-            QMNestedMenu playerActions = new QMNestedMenu(murder4NestedMenu, 2, 0, "<color=#8d142b>Player Actions</color>", "<color=#8d142b>Player Actions</color>", "Opens Select User menu", false, PeopleIcon, buttonImage);
-            QMNestedMenu worldActions = new QMNestedMenu(murder4NestedMenu, 3, 0, "<color=#8d142b>World Actions</color>", "<color=#8d142b>World Actions</color>", "Opens Select User menu", false, WorldIcon, buttonImage);
-            QMNestedMenu gunActions = new QMNestedMenu(murder4NestedMenu, 4, 0, "<color=#8d142b>Gun Actions</color>", "<color=#8d142b>Gun Actions</color>", "Opens Select User menu", false, GunIcon, buttonImage);
-            QMNestedMenu exploits = new QMNestedMenu(murder4NestedMenu, 2.5f, 1, "<color=#8d142b>Exploits</color>", "<color=#8d142b>Exploits</color>", "Opens Select User menu", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), buttonImage);
+            QMNestedMenu murder4NestedMenu = new QMNestedMenu(gameHacks, 1, 0, "Murder 4", "Murder 4", "Opens Select User menu", false, M4Icon, buttonImage);
+            QMNestedMenu winTriggers = new QMNestedMenu(murder4NestedMenu, 1, 0, "Win Triggers", "Win Triggers", "Opens Select User menu", false, WinIcon, buttonImage);
+            QMNestedMenu playerActions = new QMNestedMenu(murder4NestedMenu, 2, 0, "Player Actions", "Player Actions", "Opens Select User menu", false, PeopleIcon, buttonImage);
+            QMNestedMenu worldActions = new QMNestedMenu(murder4NestedMenu, 3, 0, "World Actions", "World Actions", "Opens Select User menu", false, WorldIcon, buttonImage);
+            QMNestedMenu gunActions = new QMNestedMenu(murder4NestedMenu, 4, 0, "Gun Actions", "Gun Actions", "Opens Select User menu", false, GunIcon, buttonImage);
+            QMNestedMenu exploits = new QMNestedMenu(murder4NestedMenu, 2.5f, 1, "Exploits", "Exploits", "Opens Select User menu", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), buttonImage);
 
             new QMSingleButton(exploits, 2f, 1.5f, "Crash All", () =>
             {
@@ -162,7 +162,7 @@ namespace Odium.QMPages
                 Murder4Utils.FireLuger();
             }, "Brings death to all players", false, null, buttonImage);
 
-            QMNestedMenu FTAC = new QMNestedMenu(gameHacks, 2, 0, "<color=#8d142b>FTAC</color>", "<color=#8d142b>FTAC</color>", "Opens Select User menu", false, FTACIcon, buttonImage);
+            QMNestedMenu FTAC = new QMNestedMenu(gameHacks, 2, 0, "FTAC", "FTAC", "Opens Select User menu", false, FTACIcon, buttonImage);
 
             new QMSingleButton(FTAC, 1, 0, "Trigger Group Board", () =>
             {

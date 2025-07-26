@@ -19,10 +19,10 @@ namespace Odium.QMPages
             Sprite PunIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Pun.png");
             Sprite PeopleIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\People.png");
 
-            QMNestedMenu murder4Protections = new QMNestedMenu(gameHacks, 1, 0, "<color=#8d142b>Udon</color>", "<color=#8d142b>Udon</color>", "Opens Select User menu", false, M4Icon, buttonImage);
-            QMNestedMenu uspeakProtection = new QMNestedMenu(gameHacks, 2, 0, "<color=#8d142b>USpeak</color>", "<color=#8d142b>USpeak</color>", "Opens Select User menu", false, SpeakerIcon, buttonImage);
-            QMNestedMenu photonProtection = new QMNestedMenu(gameHacks, 3, 0, "<color=#8d142b>Photon</color>", "<color=#8d142b>Photon</color>", "Opens Select User menu", false, PunIcon, buttonImage);
-            QMNestedMenu avatarProtection = new QMNestedMenu(gameHacks, 4, 0, "<color=#8d142b>Avatars</color>", "<color=#8d142b>Avatars</color>", "Opens Select User menu", false, PeopleIcon, buttonImage);
+            QMNestedMenu murder4Protections = new QMNestedMenu(gameHacks, 1, 0, "Udon", "Udon", "Opens Select User menu", false, M4Icon, buttonImage);
+            QMNestedMenu uspeakProtection = new QMNestedMenu(gameHacks, 2, 0, "USpeak", "USpeak", "Opens Select User menu", false, SpeakerIcon, buttonImage);
+            QMNestedMenu photonProtection = new QMNestedMenu(gameHacks, 3, 0, "Photon", "Photon", "Opens Select User menu", false, PunIcon, buttonImage);
+            QMNestedMenu avatarProtection = new QMNestedMenu(gameHacks, 4, 0, "Avatars", "Avatars", "Opens Select User menu", false, PeopleIcon, buttonImage);
 
             new QMToggleButton(murder4Protections, 1f, 0, "Prevent Patreon Crash", delegate
             {

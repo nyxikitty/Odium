@@ -16,7 +16,7 @@ namespace Odium.QMPages
         public static void InitializePage(QMNestedMenu worldButton, Sprite buttonImage)
         {
             Sprite PickupsTabImage = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\PickupsIcon.png");
-            QMNestedMenu pickupsButton = new QMNestedMenu(worldButton, 1f, 3f, "<color=#8d142b>Pickups</color>", "<color=#8d142b>Pickups</color>", "Opens Select User menu", false, null, buttonImage);
+            QMNestedMenu pickupsButton = new QMNestedMenu(worldButton, 1f, 3f, "Pickups", "Pickups", "Opens Select User menu", false, null, buttonImage);
 
             new QMToggleButton(worldButton, 1, 0, "Drone Swarm", () =>
             {

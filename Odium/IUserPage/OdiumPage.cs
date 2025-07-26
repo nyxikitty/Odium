@@ -33,11 +33,11 @@ namespace Odium.IUserPage
             Sprite InfoIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\InfoIcon.png");
             Sprite M4Icon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Murder.png");
 
-            QMNestedMenu appBotsPage = new QMNestedMenu(qMNestedMenu1, 1f, 1f, "App Bots", "<color=#8d142b>App Bots</color>", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu pickupsPage = new QMNestedMenu(qMNestedMenu1, 2f, 1f, "Pickups", "<color=#8d142b>Pickups</color>", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu functionsPage = new QMNestedMenu(qMNestedMenu1, 3f, 1f, "Functions", "<color=#8d142b>Functions</color>", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1f, "Spy Utils", "<color=#8d142b>Spy Utils</color>", "Opens Select User menu", false, null, bgImage);
-            QMNestedMenu murder4 = new QMNestedMenu(qMNestedMenu1, 2.5f, 2f, "Murder 4", "<color=#8d142b>Murder 4</color>", "Opens Select User menu", false, M4Icon, bgImage);
+            QMNestedMenu appBotsPage = new QMNestedMenu(qMNestedMenu1, 1f, 1f, "App Bots", "App Bots", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu pickupsPage = new QMNestedMenu(qMNestedMenu1, 2f, 1f, "Pickups", "Pickups", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu functionsPage = new QMNestedMenu(qMNestedMenu1, 3f, 1f, "Functions", "Functions", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu stalkPage = new QMNestedMenu(qMNestedMenu1, 4f, 1f, "Spy Utils", "Spy Utils", "Opens Select User menu", false, null, bgImage);
+            QMNestedMenu murder4 = new QMNestedMenu(qMNestedMenu1, 2.5f, 2f, "Murder 4", "Murder 4", "Opens Select User menu", false, M4Icon, bgImage);
 
             Sprite KillAllIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Kill.png");
             Sprite WinIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\Win.png");
@@ -46,9 +46,9 @@ namespace Odium.IUserPage
             Sprite WorldIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\WorldIcon.png");
             Sprite FTACIcon = SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\FTAC.png");
 
-            QMNestedMenu winTriggers = new QMNestedMenu(murder4, 2, 0, "<color=#8d142b>Win Triggers</color>", "<color=#8d142b>Win Triggers</color>", "Opens Select User menu", false, WinIcon, bgImage);
-            QMNestedMenu playerActions = new QMNestedMenu(murder4, 3, 0, "<color=#8d142b>Player Actions</color>", "<color=#8d142b>Player Actions</color>", "Opens Select User menu", false, PeopleIcon, bgImage);
-            QMNestedMenu exploits = new QMNestedMenu(murder4, 2.5f, 1, "<color=#8d142b>Exploits</color>", "<color=#8d142b>Exploits</color>", "Opens Select User menu", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), bgImage);
+            QMNestedMenu winTriggers = new QMNestedMenu(murder4, 2, 0, "Win Triggers", "Win Triggers", "Opens Select User menu", false, WinIcon, bgImage);
+            QMNestedMenu playerActions = new QMNestedMenu(murder4, 3, 0, "Player Actions", "Player Actions", "Opens Select User menu", false, PeopleIcon, bgImage);
+            QMNestedMenu exploits = new QMNestedMenu(murder4, 2.5f, 1, "Exploits", "Exploits", "Opens Select User menu", false, SpriteUtil.LoadFromDisk(Environment.CurrentDirectory + "\\Odium\\ExploitIcon.png"), bgImage);
 
             new QMSingleButton(exploits, 2.5f, 1.5f, "Crash", () =>
             {

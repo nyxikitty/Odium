@@ -28,6 +28,11 @@ using Newtonsoft.Json;
 using Odium.QMPages;
 using VRC.Udon;
 using Odium.GameCheats;
+using Photon.Realtime;
+using Photon.Pun;
+using ExitGames.Client.Photon;
+using Odium.Core;
+using Odium.API;
 
 
 [assembly: MelonInfo(typeof(OdiumEntry), "Odium", "0.0.5", "Zuno")]
@@ -57,13 +62,6 @@ namespace Odium
             {
                 OdiumConsole.Initialize();
                 OdiumConsole.LogGradient("Odium", "Starting authentication check...", LogLevel.Info, true);
-                if (!AuthenticateUser())
-                {
-                    ShowErrorDialog("Authentication Required", "Please authenticate Odium to continue.");
-                    MelonLogger.Error("Authentication failed. Closing application.");
-                    Application.Quit();
-                    return;
-                }
 
                 wasKeyValid = true;
 
@@ -76,10 +74,17 @@ namespace Odium
                 CoroutineManager.Init();
 
                 OdiumConsole.LogGradient("System", "Initialization complete!", LogLevel.Info);
+
+                ConnectToServer();
             }
             catch (Exception ex)
             {
             }
+        }
+
+        public static async void ConnectToServer()
+        {
+            EventHandlers.Initialize();
         }
 
         private bool AuthenticateUser()
@@ -331,12 +336,14 @@ VRChat will now close so you can set up authentication.";
             Patching.Initialize();
             ClonePatch.Patch();
             PhotonPatchesManual.ApplyPatches();
+            PingLoop.Start();
         }
 
         public override void OnApplicationLateStart()
         {
             ApplicationBot.Bot.Start();
             OdiumModuleLoader.OnApplicationStart();
+            RaiseEventPatches.ApplyPatches();
         }
 
         public static bool heartbeatRun = false;
@@ -412,50 +419,13 @@ VRChat will now close so you can set up authentication.";
 
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
                         {
+                            EventHandlers.LeaveRoom();
+                            EventHandlers.JoinRoom(RoomManager.prop_ApiWorldInstance_0.location);
                             PlayerWrapper.QuickSpoof();
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
                             UnityEngine.Color rankColorT = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                             string hexColorT = PlayerRankTextDisplay.ColorToHex(rankColorT);
                             string rankNameT = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
-                            IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1, hexColorT);
-
-                            MainThreadDispatcher.Enqueue(() =>
-                            {
-                                try
-                                {
-                                    var httpClient = new System.Net.Http.HttpClient();
-                                    string currentLocation = Current_World_id;
-                                    string displayName = obj.prop_IUser_0.prop_String_1;
-
-                                    if (!string.IsNullOrEmpty(currentLocation) && !string.IsNullOrEmpty(displayName))
-                                    {
-                                        var requestBody = new
-                                        {
-                                            displayName = displayName,
-                                            location = currentLocation
-                                        };
-
-                                        string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
-                                        var content = new System.Net.Http.StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
-
-                                        string apiUrl = "http://api.snoofz.net:3778/api/odium/vrc/setUserLocation";
-                                        var response = httpClient.PostAsync(apiUrl, content).Result;
-
-                                        if (response.IsSuccessStatusCode)
-                                        {
-                                            OdiumConsole.Log("Odium", $"Updated location on API: {displayName} -> {currentLocation}");
-                                        }
-                                        else
-                                        {
-                                            OdiumConsole.Log("Odium", $"Failed to update location on API. Status: {response.StatusCode}");
-                                        }
-                                    }
-                                }
-                                catch (System.Exception ex)
-                                {
-                                    OdiumConsole.Log("Odium", $"Error updating location on API: {ex.Message}");
-                                }
-                            });
                         }
 
                         UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
@@ -489,49 +459,13 @@ VRChat will now close so you can set up authentication.";
 
                         if (Networking.LocalPlayer.displayName == vrcPlayerApi.displayName)
                         {
+                            EventHandlers.LeaveRoom();
+                            EventHandlers.JoinRoom(RoomManager.prop_ApiWorldInstance_0.location);
                             PlayerWrapper.QuickSpoof();
                             PlayerWrapper.LocalPlayer = PlayerWrapper.GetVRCPlayerFromId(obj.prop_IUser_0.prop_String_0)._player;
                             UnityEngine.Color rankColorT = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
                             string hexColorT = PlayerRankTextDisplay.ColorToHex(rankColorT);
                             string rankNameT = PlayerRankTextDisplay.GetRankDisplayName(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
-                            IiIIiIIIiIIIIiIIIIiIiIiIIiIIIIiIiIIiiIiIiIIIiiIIiI.IiIIiIIIIIIIIIIIIiiiiiiIIIIiIIiIiIIIiiIiiIiIiIiiIiIiIiIIiIiIIIiiiIIIIIiIIiIiIiIiiIIIiiIiiiiiiiiIiiIIIiIiiiiIIIIIiII(obj.prop_IUser_0.prop_String_0, obj.prop_IUser_0.prop_String_1, hexColorT);
-                            MainThreadDispatcher.Enqueue(() =>
-                            {
-                                try
-                                {
-                                    var httpClient = new System.Net.Http.HttpClient();
-                                    string currentLocation = Current_World_id;
-                                    string displayName = obj.prop_IUser_0.prop_String_1;
-
-                                    if (!string.IsNullOrEmpty(currentLocation) && !string.IsNullOrEmpty(displayName))
-                                    {
-                                        var requestBody = new
-                                        {
-                                            displayName = displayName,
-                                            location = currentLocation
-                                        };
-
-                                        string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
-                                        var content = new System.Net.Http.StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
-
-                                        string apiUrl = "http://api.snoofz.net:3778/api/odium/vrc/setUserLocation";
-                                        var response = httpClient.PostAsync(apiUrl, content).Result;
-
-                                        if (response.IsSuccessStatusCode)
-                                        {
-                                            OdiumConsole.Log("Odium", $"Updated location on API: {displayName} -> {currentLocation}");
-                                        }
-                                        else
-                                        {
-                                            OdiumConsole.Log("Odium", $"Failed to update location on API. Status: {response.StatusCode}");
-                                        }
-                                    }
-                                }
-                                catch (System.Exception ex)
-                                {
-                                    OdiumConsole.Log("Odium", $"Error updating location on API: {ex.Message}");
-                                }
-                            });
                         }
 
                         UnityEngine.Color rankColor = PlayerRankTextDisplay.GetRankColor(PlayerRankTextDisplay.GetPlayerRank(player.field_Private_APIUser_0));
@@ -738,6 +672,7 @@ VRChat will now close so you can set up authentication.";
             SwasticaOrbit.OnUpdate();
             Jetpack.Update();
             FlyComponent.OnUpdate();
+            PingLoop.Update();
             CursorLayerMod.CursorLayerMod.OnUpdate();
             Chatbox.UpdateFrameEffects();
             Exploits.UpdateChatboxLagger();
