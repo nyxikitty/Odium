@@ -6,6 +6,12 @@ This MelonLoader mod is being released as open source due to recent events in th
 
 <img width="337" height="117" alt="image" src="https://github.com/user-attachments/assets/7b84dac0-8e4c-4dc2-b23c-e83a1d5ae67d" />
 
+<img width="1297" height="896" alt="Capture65465454" src="https://github.com/user-attachments/assets/351d424b-b033-44ff-ad56-9074168d0b64" />
+<img width="1291" height="844" alt="Capture54325423423" src="https://github.com/user-attachments/assets/93877bbc-c7bc-4c56-ba1f-2d459f50209f" />
+<img width="1399" height="824" alt="Capture432423324" src="https://github.com/user-attachments/assets/cb1dcd35-8139-4aa7-ab0e-88464e9bab59" />
+<img width="1366" height="910" alt="g34534543534" src="https://github.com/user-attachments/assets/8e0fe0af-6a07-4421-8a17-f1af12ca2b27" />
+<img width="1304" height="873" alt="Capture5454543" src="https://github.com/user-attachments/assets/fa1f6102-402d-4876-a4ce-729a79cfe985" />
+
 - **The compiled DLL was leaked** and has been circulating without authorization
 - **Authentication systems were bypassed** by individuals redistributing cracked versions
 - **Code has been copied extensively** by script kiddies without understanding or credit
