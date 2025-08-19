@@ -4,6 +4,8 @@
 
 This MelonLoader mod is being released as open source due to recent events in the community:
 
+<img width="337" height="117" alt="image" src="https://github.com/user-attachments/assets/7b84dac0-8e4c-4dc2-b23c-e83a1d5ae67d" />
+
 - **The compiled DLL was leaked** and has been circulating without authorization
 - **Authentication systems were bypassed** by individuals redistributing cracked versions
 - **Code has been copied extensively** by script kiddies without understanding or credit
