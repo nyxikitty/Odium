@@ -72,8 +72,8 @@ Rather than continue fighting an uphill battle against piracy and unauthorized d
 
 ### Build Instructions
 ```bash
-git clone https://github.com/yourusername/yourmod.git
-cd yourmod
+git clone https://github.com/cyberarchives/Odium.git
+cd Odium
 # Open in Visual Studio and build, or use:
 dotnet build
 ```
