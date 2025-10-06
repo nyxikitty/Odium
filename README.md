@@ -1,24 +1,26 @@
 # Odium - Now Open Source
 
 <p align="center">
-  <br>
-  <br>
-  <br>
+
 <img src="https://github.com/user-attachments/assets/351d424b-b033-44ff-ad56-9074168d0b64" 
        width="350" 
        style="border-radius: 12px; border: 2px solid #444; margin: 6px;" />
+  <br>
 
   <img src="https://github.com/user-attachments/assets/93877bbc-c7bc-4c56-ba1f-2d459f50209f" 
        width="350" 
        style="border-radius: 12px; border: 2px solid #444; margin: 6px;" />
+  <br>
 
   <img src="https://github.com/user-attachments/assets/cb1dcd35-8139-4aa7-ab0e-88464e9bab59" 
        width="350" 
        style="border-radius: 12px; border: 2px solid #444; margin: 6px;" />
+  <br>
 
   <img src="https://github.com/user-attachments/assets/8e0fe0af-6a07-4421-8a17-f1af12ca2b27" 
        width="350" 
        style="border-radius: 12px; border: 2px solid #444; margin: 6px;" />
+  <br>
 
   <img src="https://github.com/user-attachments/assets/fa1f6102-402d-4876-a4ce-729a79cfe985" 
        width="350" 
