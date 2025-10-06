@@ -38,6 +38,8 @@ This MelonLoader mod is being released as open source due to recent events in th
 - **Exploits and features were distributed freely** across various platforms
 - **Endpoints were attacked and spammed** causing service disruptions
 - **The Discord server was nuked** by malicious actors
+- **List of admins** were leaked by malicious actors
+- **User Tracking** was spammed by a malicious actor
 
 Rather than continue fighting an uphill battle against piracy and unauthorized distribution, I've decided to embrace transparency and release the source code publicly.
 
