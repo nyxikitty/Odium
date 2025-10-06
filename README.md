@@ -1,6 +1,7 @@
 # Odium - Now Open Source
 
 <p align="center">
+  <br>
   <img src="https://github.com/user-attachments/assets/351d424b-b033-44ff-ad56-9074168d0b64" 
        width="350" 
        style="border-radius: 12px; border: 2px solid #444; margin: 6px;" />
