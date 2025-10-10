@@ -80,7 +80,15 @@ dotnet build
 
 ## Features
 
-[List your mod's main features here]
+- Drone Crash
+- USpeak Spam
+- Network Protection
+- Avatar Protection
+- Photon Exploits
+- App Bots
+- Movement modules (Fly, infinite jump, etc)
+- QM Console
+- Clean and Customizable UI
 
 ## Contributing
 
