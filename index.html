@@ -1,0 +1,2582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuinFinder - Discover Abandoned Places</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Work+Sans:wght@300;400;500;600&display=swap');
+
+        :root {
+            --primary: #0f1419;
+            --secondary: #1c2128;
+            --tertiary: #2d333b;
+            --accent: #ff6b35;
+            --accent-light: #ff8c61;
+            --accent-dark: #e5572e;
+            --danger: #ff4757;
+            --success: #26de81;
+            --warning: #feca57;
+            --text: #f5f6fa;
+            --text-dim: #a4b0be;
+            --bg: #0d1117;
+            --bg-elevated: #161b22;
+            --card: #1c2128;
+            --border: #30363d;
+            --overlay: rgba(13, 17, 23, 0.92);
+            --glow: rgba(255, 107, 53, 0.15);
+            --glass: rgba(28, 33, 40, 0.85);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 6px;
+            border: 2px solid var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-light);
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) var(--bg);
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(ellipse at top, var(--primary), var(--bg));
+        }
+
+        header {
+            background: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            transition: border-color 0.2s;
+            overflow: hidden;
+        }
+
+        .user-avatar:hover {
+            border-color: var(--accent);
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-family: 'Work Sans', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border: 2px solid var(--accent);
+            color: var(--text);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-light);
+            border-color: var(--accent-light);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: var(--text);
+        }
+
+        .btn-danger:hover {
+            background: #ff6b7a;
+        }
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-card h2 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .auth-card p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .error-message {
+            background: rgba(196, 69, 54, 0.15);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .auth-switch a {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .profile-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem 0;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .profile-menu-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .profile-menu-item:hover {
+            background: var(--secondary);
+        }
+
+        .fab-add {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            color: var(--primary);
+            border-radius: 50%;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(212, 165, 116, 0.4);
+            transition: all 0.3s;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab-add:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(212, 165, 116, 0.6);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+            overflow-y: auto;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.75rem;
+            color: var(--accent);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: var(--accent);
+        }
+
+        .hazard-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .hazard-option {
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg);
+        }
+
+        .hazard-option:hover {
+            border-color: var(--accent);
+        }
+
+        .hazard-option.selected {
+            border-color: var(--accent);
+            background: rgba(212, 165, 116, 0.1);
+        }
+
+        .hazard-option h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            color: var(--text);
+        }
+
+        .hazard-option p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .location-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .location-card:hover::before {
+            opacity: 1;
+        }
+
+        .location-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .location-card-actions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--danger);
+            background: transparent;
+            color: var(--danger);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .icon-btn:hover {
+            background: var(--danger);
+            color: var(--text);
+        }
+
+        .icon-btn-directions {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .icon-btn-directions:hover {
+            background: var(--accent);
+            color: var(--text);
+        }
+
+        .icon-btn-delete {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .icon-btn-delete:hover {
+            background: var(--danger);
+            color: var(--text);
+        }
+
+        .location-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .location-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .location-meta {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.75rem;
+        }
+
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: rgba(212, 165, 116, 0.15);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .status-verified {
+            background: rgba(90, 125, 95, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .hazard-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            border: 1px solid;
+        }
+
+        .hazard-safe {
+            background: rgba(90, 125, 95, 0.15);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .hazard-moderate {
+            background: rgba(212, 165, 116, 0.15);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .hazard-unsafe {
+            background: rgba(196, 69, 54, 0.15);
+            color: #e57a6d;
+            border-color: #e57a6d;
+        }
+
+        .hazard-dangerous {
+            background: rgba(196, 69, 54, 0.25);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .rating-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .rating-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stars {
+            display: flex;
+            gap: 0.25rem;
+            font-size: 1.25rem;
+        }
+
+        .star {
+            cursor: pointer;
+            transition: transform 0.2s;
+            color: var(--border);
+        }
+
+        .star:hover,
+        .star.filled {
+            color: var(--accent);
+        }
+
+        .star:hover {
+            transform: scale(1.2);
+        }
+
+        .rating-count {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .comments-section {
+            margin-top: 1rem;
+        }
+
+        .comment {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-author {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .comment-rating {
+            color: var(--accent);
+            font-size: 0.85rem;
+        }
+
+        .comment-text {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .profile-picture-upload {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border);
+            overflow: hidden;
+        }
+
+        .preview-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .file-input-label:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+        }
+
+        .moderator-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+            min-width: 140px;
+            justify-content: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 360px;
+            background: var(--primary);
+            border-right: 1px solid var(--border);
+            z-index: 90;
+            overflow-y: auto;
+            padding-top: 73px;
+            transform: translateX(-100%);
+            transition: transform 0.3s;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-content {
+            padding: 1.5rem;
+        }
+
+        .sidebar-header {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .people-sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 360px;
+            background: var(--primary);
+            border-left: 1px solid var(--border);
+            z-index: 90;
+            overflow-y: auto;
+            padding-top: 73px;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .people-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .people-sidebar .sidebar-content {
+            padding: 1.5rem;
+        }
+
+        .people-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .people-list .person-card {
+            margin: 0;
+        }
+
+        .stats-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 2px;
+            background: var(--text);
+            transition: all 0.3s;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 1.25rem;
+            }
+
+            .btn {
+                padding: 0.4rem 0.9rem;
+                font-size: 0.85rem;
+            }
+
+            .auth-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .fab-add {
+                width: 56px;
+                height: 56px;
+                bottom: 5.5rem;
+                right: 1.5rem;
+                font-size: 1.75rem;
+            }
+
+            .location-card {
+                padding: 1.25rem;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .header-actions .btn:not(.btn-primary) {
+                display: none;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-width: 360px;
+            }
+
+            .bottom-nav {
+                display: block;
+            }
+
+            .main-content {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            .people-sidebar {
+                display: none;
+            }
+        }
+
+        .custom-marker {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .custom-marker:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 10px var(--accent-glow));
+        }
+
+        .marker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .marker-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow), 0 4px 10px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .marker-avatar.verified {
+            border-color: var(--success);
+            box-shadow: 0 0 15px var(--success-glow), 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .marker-avatar.pending {
+            border-color: var(--warning);
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 15px var(--accent-glow), 0 4px 10px rgba(0, 0, 0, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 25px var(--accent-glow), 0 4px 15px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .marker-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .marker-label {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            color: var(--text);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary);
+            border-top: 1px solid var(--border);
+            padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .bottom-nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-dim);
+            text-decoration: none;
+            position: relative;
+        }
+
+        .bottom-nav-item:hover,
+        .bottom-nav-item.active {
+            color: var(--accent);
+        }
+
+        .bottom-nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -0.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .bottom-nav-icon {
+            font-size: 1.5rem;
+        }
+
+        .bottom-nav-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .fab-add {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            color: var(--text);
+            border-radius: 50%;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab-add:hover {
+            background: var(--accent-light);
+            transform: scale(1.05);
+        }
+
+        .fab-add:active {
+            transform: scale(0.95);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .community-modal {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            z-index: 1000;
+            padding: 1rem;
+            overflow-y: auto;
+            backdrop-filter: blur(4px);
+        }
+
+        .community-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 800px;
+            margin: auto;
+            margin-top: 2rem;
+        }
+
+        .people-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .person-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+
+        .person-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .person-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid var(--border);
+        }
+
+        .person-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .person-info {
+            flex: 1;
+        }
+
+        .person-name {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .person-meta {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .moderator-badge {
+            display: inline-block;
+            background: rgba(212, 165, 116, 0.15);
+            color: var(--accent);
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            border: 1px solid var(--accent);
+        }
+
+        .mapboxgl-popup-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text);
+        }
+
+        .mapboxgl-popup-close-button {
+            color: var(--text);
+            font-size: 1.5rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .custom-marker {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-marker:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+
+        .marker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+        }
+
+        .marker-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 3px solid var(--accent);
+            background: var(--card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .marker-avatar.verified {
+            border-color: var(--success);
+        }
+
+        .marker-avatar.pending {
+            border-color: var(--warning);
+        }
+
+        .marker-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .marker-status-icon {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 16px;
+            height: 16px;
+            background: var(--card);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border: 2px solid var(--bg);
+        }
+
+        .marker-label {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            color: var(--text);
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const API_URL = 'https://floof.wtf/api';
+        const MAPBOX_TOKEN = 'pk.eyJ1Ijoic25vb2Z6IiwiYSI6ImNtbDc4ZnJmZTBtYWYzZm9nNHJubXMxMzgifQ.3dzCjY3MMfX6pCJJJl1s8Q';
+
+        const HAZARD_LEVELS = {
+            safe: { label: 'Safe', desc: 'Mostly messy', color: 'safe' },
+            moderate: { label: 'Moderate', desc: 'Glass shards on the ground', color: 'moderate' },
+            unsafe: { label: 'Unsafe', desc: 'Chemicals that can be breathed in', color: 'unsafe' },
+            dangerous: { label: 'Dangerous', desc: 'Roof caving in, floor caving in', color: 'dangerous' }
+        };
+
+        const api = {
+            async signup(formData) {
+                const response = await fetch(`${API_URL}/auth/signup`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) throw new Error((await response.json()).error);
+                return response.json();
+            },
+
+            async login(email, password) {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                if (!response.ok) throw new Error((await response.json()).error);
+                return response.json();
+            },
+
+            async getMe(token) {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Authentication failed');
+                return response.json();
+            },
+
+            async getLocations(status = null) {
+                const url = status ? `${API_URL}/locations?status=${status}` : `${API_URL}/locations`;
+                const response = await fetch(url);
+                return response.json();
+            },
+
+            async getLocation(id) {
+                const response = await fetch(`${API_URL}/locations/${id}`);
+                return response.json();
+            },
+
+            async createLocation(token, data) {
+                const response = await fetch(`${API_URL}/locations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error((await response.json()).error);
+                return response.json();
+            },
+
+            async verifyLocation(token, id) {
+                const response = await fetch(`${API_URL}/locations/${id}/verify`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error((await response.json()).error);
+                return response.json();
+            },
+
+            async deleteLocation(token, id) {
+                const response = await fetch(`${API_URL}/locations/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error((await response.json()).error);
+                return response.json();
+            },
+
+            async addRating(token, locationId, rating, comment) {
+                const response = await fetch(`${API_URL}/locations/${locationId}/ratings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ rating, comment })
+                });
+                if (!response.ok) throw new Error((await response.json()).error);
+                return response.json();
+            }
+        };
+
+        function App() {
+            const [currentUser, setCurrentUser] = useState(null);
+            const [showAuth, setShowAuth] = useState(true);
+            const [authMode, setAuthMode] = useState('login');
+            const [showProfileMenu, setShowProfileMenu] = useState(false);
+            const [showAddLocation, setShowAddLocation] = useState(false);
+            const [showLocationDetails, setShowLocationDetails] = useState(false);
+            const [selectedLocation, setSelectedLocation] = useState(null);
+            const [showSidebar, setShowSidebar] = useState(false);
+            const [loading, setLoading] = useState(true);
+            const [locations, setLocations] = useState([]);
+            const [authError, setAuthError] = useState('');
+            const [mapInitialized, setMapInitialized] = useState(false);
+            const [activeTab, setActiveTab] = useState('map');
+            const [showPeopleModal, setShowPeopleModal] = useState(false);
+            const [showPeopleSidebar, setShowPeopleSidebar] = useState(false);
+            const [users, setUsers] = useState([]);
+            const [stats, setStats] = useState(null);
+            
+            const mapContainer = useRef(null);
+            const map = useRef(null);
+            const markers = useRef({});
+            const [mapLoaded, setMapLoaded] = useState(false);
+
+            useEffect(() => {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    api.getMe(token)
+                        .then(user => {
+                            setCurrentUser(user);
+                            setShowAuth(false);
+                            loadLocations();
+                        })
+                        .catch(() => {
+                            localStorage.removeItem('token');
+                            setShowAuth(true);
+                            setLoading(false);
+                        });
+                } else {
+                    setShowAuth(true);
+                    setLoading(false);
+                }
+            }, []);
+
+            const loadLocations = async () => {
+                try {
+                    const data = await api.getLocations();
+                    setLocations(data);
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Failed to load locations:', error);
+                    setLoading(false);
+                }
+            };
+
+            const loadUsers = async () => {
+                try {
+                    const data = await fetch(`${API_URL}/users`).then(r => r.json());
+                    setUsers(data);
+                } catch (error) {
+                    console.error('Failed to load users:', error);
+                }
+            };
+
+            const loadStats = async () => {
+                try {
+                    const data = await fetch(`${API_URL}/stats`).then(r => r.json());
+                    setStats(data);
+                } catch (error) {
+                    console.error('Failed to load stats:', error);
+                }
+            };
+
+            useEffect(() => {
+                if (!showAuth) {
+                    loadUsers();
+                    loadStats();
+                }
+            }, [showAuth]);
+
+            useEffect(() => {
+                if (!showAuth && !loading && mapContainer.current && !mapInitialized) {
+                    const initMap = async () => {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        if (!mapContainer.current || map.current) return;
+                        
+                        try {
+                            mapboxgl.accessToken = MAPBOX_TOKEN;
+                            
+                            const mapInstance = new mapboxgl.Map({
+                                container: mapContainer.current,
+                                style: 'mapbox://styles/mapbox/dark-v11',
+                                center: [-98, 39],
+                                zoom: 4
+                            });
+
+                            mapInstance.on('load', () => {
+                                setMapLoaded(true);
+                            });
+
+                            mapInstance.on('click', (e) => {
+                                const latInput = document.getElementById('location-lat');
+                                const lngInput = document.getElementById('location-lng');
+                                if (latInput && lngInput) {
+                                    latInput.value = e.lngLat.lat.toFixed(6);
+                                    lngInput.value = e.lngLat.lng.toFixed(6);
+                                }
+                            });
+
+                            map.current = mapInstance;
+                            setMapInitialized(true);
+                        } catch (error) {
+                            console.error('Failed to initialize map:', error);
+                        }
+                    };
+
+                    initMap();
+                }
+            }, [showAuth, mapInitialized, loading]);
+
+            useEffect(() => {
+                if (mapLoaded && map.current && users.length > 0) {
+                    Object.values(markers.current).forEach(marker => marker.remove());
+                    markers.current = {};
+
+                    locations.forEach(location => {
+                        const markerContainer = document.createElement('div');
+                        markerContainer.className = 'custom-marker';
+                        
+                        const innerContainer = document.createElement('div');
+                        innerContainer.className = 'marker-container';
+                        
+                        const avatar = document.createElement('div');
+                        avatar.className = `marker-avatar ${location.status}`;
+                        
+                        if (location.submittedBy && location.submittedBy.profilePicture) {
+                            const img = document.createElement('img');
+                            img.src = `https://floof.wtf${location.submittedBy.profilePicture}`;
+                            img.alt = location.submittedBy.username;
+                            avatar.appendChild(img);
+                        } else {
+                            avatar.innerHTML = '<span style="font-size: 1.2rem;">📍</span>';
+                        }
+                        
+                        const statusIcon = document.createElement('div');
+                        statusIcon.className = 'marker-status-icon';
+                        statusIcon.textContent = location.status === 'verified' ? '✓' : '⏱';
+                        avatar.appendChild(statusIcon);
+                        
+                        const label = document.createElement('div');
+                        label.className = 'marker-label';
+                        label.textContent = location.name;
+                        
+                        innerContainer.appendChild(avatar);
+                        innerContainer.appendChild(label);
+                        markerContainer.appendChild(innerContainer);
+
+                        const marker = new mapboxgl.Marker(markerContainer)
+                            .setLngLat([location.lng, location.lat])
+                            .addTo(map.current);
+
+                        markerContainer.addEventListener('click', async () => {
+                            try {
+                                const fullLocation = await api.getLocation(location._id);
+                                setSelectedLocation(fullLocation);
+                                setShowLocationDetails(true);
+                            } catch (error) {
+                                console.error('Failed to load location details:', error);
+                            }
+                        });
+
+                        markers.current[location._id] = marker;
+                    });
+                }
+            }, [locations, mapLoaded]);
+
+            const handleAuth = async (e, mode) => {
+                e.preventDefault();
+                setAuthError('');
+                
+                try {
+                    if (mode === 'signup') {
+                        const formData = new FormData(e.target);
+                        const result = await api.signup(formData);
+                        localStorage.setItem('token', result.token);
+                        setCurrentUser(result.user);
+                        setShowAuth(false);
+                        loadLocations();
+                    } else {
+                        const formData = new FormData(e.target);
+                        const result = await api.login(
+                            formData.get('email'),
+                            formData.get('password')
+                        );
+                        localStorage.setItem('token', result.token);
+                        setCurrentUser(result.user);
+                        setShowAuth(false);
+                        loadLocations();
+                    }
+                } catch (error) {
+                    setAuthError(error.message);
+                }
+            };
+
+            const handleLogout = () => {
+                localStorage.removeItem('token');
+                setCurrentUser(null);
+                setShowAuth(true);
+                setShowProfileMenu(false);
+            };
+
+            const handleAddLocation = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const formData = new FormData(form);
+                
+                const imageInput = document.getElementById('image-upload');
+                if (imageInput && imageInput.files) {
+                    Array.from(imageInput.files).forEach(file => {
+                        formData.append('images', file);
+                    });
+                }
+                
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${API_URL}/locations`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error((await response.json()).error);
+                    }
+                    
+                    setShowAddLocation(false);
+                    loadLocations();
+                    form.reset();
+                } catch (error) {
+                    alert('Failed to add location: ' + error.message);
+                }
+            };
+
+            const handleVerifyLocation = async (locationId) => {
+                try {
+                    const token = localStorage.getItem('token');
+                    await api.verifyLocation(token, locationId);
+                    loadLocations();
+                    const updated = await api.getLocation(locationId);
+                    setSelectedLocation(updated);
+                } catch (error) {
+                    alert('Failed to verify location: ' + error.message);
+                }
+            };
+
+            const handleDeleteLocation = async (locationId) => {
+                if (confirm('Are you sure you want to delete this location?')) {
+                    try {
+                        const token = localStorage.getItem('token');
+                        await api.deleteLocation(token, locationId);
+                        setShowLocationDetails(false);
+                        setSelectedLocation(null);
+                        loadLocations();
+                    } catch (error) {
+                        alert('Failed to delete location: ' + error.message);
+                    }
+                }
+            };
+
+            const handleRating = async (locationId, rating, comment) => {
+                try {
+                    const token = localStorage.getItem('token');
+                    await api.addRating(token, locationId, rating, comment);
+                    const updated = await api.getLocation(locationId);
+                    setSelectedLocation(updated);
+                    loadLocations();
+                } catch (error) {
+                    alert('Failed to add rating: ' + error.message);
+                }
+            };
+
+            if (loading) {
+                return <div className="loading">Loading...</div>;
+            }
+
+            return (
+                <div className="app-container">
+                    {showAuth && (
+                        <AuthOverlay 
+                            mode={authMode} 
+                            setMode={setAuthMode} 
+                            onAuth={handleAuth}
+                            error={authError}
+                        />
+                    )}
+                    
+                    {!showAuth && (
+                        <>
+                            <Header 
+                                user={currentUser} 
+                                showProfileMenu={showProfileMenu}
+                                setShowProfileMenu={setShowProfileMenu}
+                                onLogout={handleLogout}
+                                setShowSidebar={setShowSidebar}
+                                showSidebar={showSidebar}
+                                setShowPeopleSidebar={setShowPeopleSidebar}
+                                showPeopleSidebar={showPeopleSidebar}
+                            />
+                            
+                            <Sidebar 
+                                isOpen={showSidebar}
+                                locations={locations}
+                                onClose={() => setShowSidebar(false)}
+                                onSelectLocation={async (loc) => {
+                                    const full = await api.getLocation(loc._id);
+                                    setSelectedLocation(full);
+                                    setShowLocationDetails(true);
+                                    setShowSidebar(false);
+                                    if (map.current) {
+                                        map.current.flyTo({ center: [loc.lng, loc.lat], zoom: 14 });
+                                    }
+                                }}
+                                currentUser={currentUser}
+                                onDeleteLocation={handleDeleteLocation}
+                            />
+
+                            <PeopleSidebar 
+                                isOpen={showPeopleSidebar}
+                                users={users}
+                                currentUser={currentUser}
+                                stats={stats}
+                                onClose={() => setShowPeopleSidebar(false)}
+                            />
+                            
+                            <main className="main-content">
+                                <div ref={mapContainer} id="map" />
+                            </main>
+                            
+                            <button 
+                                className="fab-add"
+                                onClick={() => setShowAddLocation(true)}
+                            >
+                                +
+                            </button>
+                            
+                            {showAddLocation && (
+                                <AddLocationModal 
+                                    onClose={() => setShowAddLocation(false)}
+                                    onSubmit={handleAddLocation}
+                                />
+                            )}
+                            
+                            {showLocationDetails && selectedLocation && (
+                                <LocationDetailsModal 
+                                    location={selectedLocation}
+                                    currentUser={currentUser}
+                                    onClose={() => {
+                                        setShowLocationDetails(false);
+                                        setSelectedLocation(null);
+                                    }}
+                                    onVerify={handleVerifyLocation}
+                                    onDelete={handleDeleteLocation}
+                                    onRate={handleRating}
+                                />
+                            )}
+
+                            <BottomNav 
+                                activeTab={activeTab}
+                                setActiveTab={setActiveTab}
+                                setShowSidebar={setShowSidebar}
+                                setShowPeopleModal={setShowPeopleModal}
+                            />
+
+                            {showPeopleModal && (
+                                <PeopleModal 
+                                    users={users}
+                                    currentUser={currentUser}
+                                    onClose={() => setShowPeopleModal(false)}
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        function AuthOverlay({ mode, setMode, onAuth, error }) {
+            const [profilePicPreview, setProfilePicPreview] = useState(null);
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setProfilePicPreview(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleSubmit = async (e) => {
+                setIsSubmitting(true);
+                try {
+                    await onAuth(e, mode);
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+
+            return (
+                <div className="auth-overlay">
+                    <div className="auth-card">
+                        <h2>{mode === 'login' ? 'Welcome Back' : 'Join RuinFinder'}</h2>
+                        <p>{mode === 'login' ? 'Sign in to discover abandoned places' : 'Create your account to start exploring'}</p>
+                        
+                        {error && <div className="error-message">{error}</div>}
+                        
+                        <form onSubmit={handleSubmit}>
+                            {mode === 'signup' && (
+                                <>
+                                    <div className="profile-picture-upload">
+                                        <div className="preview-avatar">
+                                            {profilePicPreview ? (
+                                                <img src={profilePicPreview} alt="Preview" />
+                                            ) : (
+                                                <span style={{ fontSize: '2rem', color: 'var(--text-dim)' }}>👤</span>
+                                            )}
+                                        </div>
+                                        <div className="file-input-wrapper">
+                                            <input 
+                                                type="file" 
+                                                id="profilePicture" 
+                                                name="profilePicture"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                            />
+                                            <label htmlFor="profilePicture" className="file-input-label">
+                                                Choose Photo
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label>Username</label>
+                                        <input type="text" name="username" required />
+                                    </div>
+                                </>
+                            )}
+                            
+                            <div className="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" required />
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" required />
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                className="btn btn-primary" 
+                                style={{ width: '100%' }}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Please wait...' : (mode === 'login' ? 'Sign In' : 'Create Account')}
+                            </button>
+                        </form>
+                        
+                        <div className="auth-switch">
+                            {mode === 'login' ? (
+                                <>Don't have an account? <a onClick={() => setMode('signup')}>Sign up</a></>
+                            ) : (
+                                <>Already have an account? <a onClick={() => setMode('login')}>Sign in</a></>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Header({ user, showProfileMenu, setShowProfileMenu, onLogout, setShowSidebar, showSidebar, setShowPeopleSidebar, showPeopleSidebar }) {
+            return (
+                <header>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div 
+                            className="hamburger"
+                            onClick={() => setShowSidebar(!showSidebar)}
+                        >
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div className="logo">RuinFinder</div>
+                    </div>
+                    
+                    <div className="header-actions">
+                        <button className="btn" onClick={() => setShowSidebar(!showSidebar)}>
+                            Locations
+                        </button>
+                        
+                        <button className="btn" onClick={() => setShowPeopleSidebar(!showPeopleSidebar)}>
+                            People
+                        </button>
+                        
+                        <div style={{ position: 'relative' }}>
+                            <div 
+                                className="user-avatar"
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                            >
+                                {user.profilePicture ? (
+                                    <img src={`https://floof.wtf${user.profilePicture}`} alt={user.username} />
+                                ) : (
+                                    <span style={{ fontSize: '1.2rem' }}>👤</span>
+                                )}
+                            </div>
+                            
+                            {showProfileMenu && (
+                                <div className="profile-menu">
+                                    <div className="profile-menu-item" style={{ fontWeight: 500, borderBottom: '1px solid var(--border)', marginBottom: '0.5rem' }}>
+                                        {user.username}
+                                    </div>
+                                    {user.isModerator && (
+                                        <div className="profile-menu-item" style={{ color: 'var(--accent)' }}>
+                                            Moderator
+                                        </div>
+                                    )}
+                                    <div className="profile-menu-item" onClick={onLogout}>
+                                        Logout
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </header>
+            );
+        }
+
+        function Sidebar({ isOpen, locations, onClose, onSelectLocation, currentUser, onDeleteLocation }) {
+            const pendingLocations = locations.filter(loc => loc.status === 'pending');
+            const verifiedLocations = locations.filter(loc => loc.status === 'verified');
+
+            return (
+                <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+                    <div className="sidebar-content">
+                        <div className="sidebar-header">Locations</div>
+                        
+                        {currentUser.isModerator && pendingLocations.length > 0 && (
+                            <div style={{ marginBottom: '2rem' }}>
+                                <h3 style={{ fontSize: '1rem', color: 'var(--accent)', marginBottom: '1rem' }}>
+                                    Pending Review ({pendingLocations.length})
+                                </h3>
+                                {pendingLocations.map(location => (
+                                    <LocationCard 
+                                        key={location._id} 
+                                        location={location}
+                                        onClick={() => onSelectLocation(location)}
+                                        currentUser={currentUser}
+                                        onDelete={onDeleteLocation}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        
+                        <div>
+                            <h3 style={{ fontSize: '1rem', color: 'var(--text)', marginBottom: '1rem' }}>
+                                Verified Locations ({verifiedLocations.length})
+                            </h3>
+                            {verifiedLocations.length === 0 ? (
+                                <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>
+                                    No verified locations yet
+                                </p>
+                            ) : (
+                                verifiedLocations.map(location => (
+                                    <LocationCard 
+                                        key={location._id} 
+                                        location={location}
+                                        onClick={() => onSelectLocation(location)}
+                                        currentUser={currentUser}
+                                        onDelete={onDeleteLocation}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function LocationCard({ location, onClick, currentUser, onDelete }) {
+            const handleDelete = (e) => {
+                e.stopPropagation();
+                if (confirm(`Are you sure you want to delete "${location.name}"?`)) {
+                    onDelete(location._id);
+                }
+            };
+
+            const handleDirections = (e) => {
+                e.stopPropagation();
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const isAndroid = /Android/.test(navigator.userAgent);
+                
+                if (isIOS) {
+                    window.open(`maps://maps.apple.com/?daddr=${location.lat},${location.lng}&dirflg=d`, '_blank');
+                } else if (isAndroid) {
+                    window.open(`geo:${location.lat},${location.lng}?q=${location.lat},${location.lng}(${encodeURIComponent(location.name)})`, '_blank');
+                } else {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`, '_blank');
+                }
+            };
+
+            return (
+                <div className="location-card" onClick={onClick} style={{ cursor: 'pointer' }}>
+                    <div className="location-card-actions">
+                        <button 
+                            className="icon-btn icon-btn-directions" 
+                            onClick={handleDirections}
+                            title="Get directions"
+                        >
+                            🧭
+                        </button>
+                        {currentUser && currentUser.isModerator && (
+                            <button 
+                                className="icon-btn icon-btn-delete" 
+                                onClick={handleDelete}
+                                title="Delete location"
+                            >
+                                🗑️
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="location-header">
+                        <div>
+                            <div className="location-title">{location.name}</div>
+                            <div className="location-meta">
+                                {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                            </div>
+                        </div>
+                        <span className={`status-badge status-${location.status}`}>
+                            {location.status}
+                        </span>
+                    </div>
+                    
+                    <div className={`hazard-badge hazard-${HAZARD_LEVELS[location.hazardLevel].color}`}>
+                        {HAZARD_LEVELS[location.hazardLevel].label}
+                    </div>
+                    
+                    {location.avgRating > 0 && (
+                        <div style={{ marginTop: '0.75rem', color: 'var(--text-dim)', fontSize: '0.9rem' }}>
+                            ⭐ {location.avgRating} ({location.ratingCount} {location.ratingCount === 1 ? 'rating' : 'ratings'})
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function AddLocationModal({ onClose, onSubmit }) {
+            const [selectedHazard, setSelectedHazard] = useState('safe');
+            const [gettingLocation, setGettingLocation] = useState(false);
+            const [selectedImages, setSelectedImages] = useState([]);
+            const [imagePreviews, setImagePreviews] = useState([]);
+
+            const handleImageChange = (e) => {
+                const files = Array.from(e.target.files).slice(0, 5);
+                setSelectedImages(files);
+                
+                const previews = files.map(file => URL.createObjectURL(file));
+                setImagePreviews(previews);
+            };
+
+            const removeImage = (index) => {
+                const newImages = selectedImages.filter((_, i) => i !== index);
+                const newPreviews = imagePreviews.filter((_, i) => i !== index);
+                setSelectedImages(newImages);
+                setImagePreviews(newPreviews);
+                
+                URL.revokeObjectURL(imagePreviews[index]);
+            };
+
+            const getCurrentLocation = () => {
+                setGettingLocation(true);
+                
+                if (!navigator.geolocation) {
+                    alert('Geolocation is not supported by your browser');
+                    setGettingLocation(false);
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('location-lat').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('location-lng').value = position.coords.longitude.toFixed(6);
+                        setGettingLocation(false);
+                    },
+                    (error) => {
+                        let errorMessage = 'Unable to get your location';
+                        if (error.code === error.PERMISSION_DENIED) {
+                            errorMessage = 'Location permission denied. Please enable location access in your browser settings.';
+                        } else if (error.code === error.POSITION_UNAVAILABLE) {
+                            errorMessage = 'Location information unavailable';
+                        } else if (error.code === error.TIMEOUT) {
+                            errorMessage = 'Location request timed out';
+                        }
+                        alert(errorMessage);
+                        setGettingLocation(false);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Add Location</h3>
+                            <button className="close-btn" onClick={onClose}>×</button>
+                        </div>
+                        
+                        <form onSubmit={onSubmit}>
+                            <div className="form-group">
+                                <label>Location Name</label>
+                                <input type="text" name="name" required placeholder="Old Factory Building" />
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea name="description" required placeholder="Describe what's at this location..."></textarea>
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Coordinates</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                    <input type="number" step="any" id="location-lat" name="lat" required placeholder="Latitude" />
+                                    <input type="number" step="any" id="location-lng" name="lng" required placeholder="Longitude" />
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    <button 
+                                        type="button"
+                                        className="btn"
+                                        onClick={getCurrentLocation}
+                                        disabled={gettingLocation}
+                                        style={{ flex: '1', minWidth: '140px' }}
+                                    >
+                                        {gettingLocation ? 'Getting location...' : '📍 Use Current Location'}
+                                    </button>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', flex: '1', minWidth: '140px', margin: 'auto 0' }}>
+                                        or click on the map
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Photos (up to 5)</label>
+                                <input 
+                                    type="file" 
+                                    name="images"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleImageChange}
+                                    style={{ display: 'none' }}
+                                    id="image-upload"
+                                />
+                                <label htmlFor="image-upload" className="btn" style={{ width: '100%', display: 'block', textAlign: 'center' }}>
+                                    📸 Add Photos ({selectedImages.length}/5)
+                                </label>
+                                
+                                {imagePreviews.length > 0 && (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
+                                        {imagePreviews.map((preview, index) => (
+                                            <div key={index} style={{ position: 'relative' }}>
+                                                <img 
+                                                    src={preview} 
+                                                    alt={`Preview ${index + 1}`}
+                                                    style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border)' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeImage(index)}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '4px',
+                                                        right: '4px',
+                                                        background: 'var(--danger)',
+                                                        border: 'none',
+                                                        borderRadius: '50%',
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        color: 'var(--text)',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.8rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Hazard Level</label>
+                                <div className="hazard-grid">
+                                    {Object.entries(HAZARD_LEVELS).map(([key, hazard]) => (
+                                        <div 
+                                            key={key}
+                                            className={`hazard-option ${selectedHazard === key ? 'selected' : ''}`}
+                                            onClick={() => setSelectedHazard(key)}
+                                        >
+                                            <h4>{hazard.label}</h4>
+                                            <p>{hazard.desc}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <input type="hidden" name="hazardLevel" value={selectedHazard} />
+                            </div>
+                            
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
+                                Submit Location
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        function LocationDetailsModal({ location, currentUser, onClose, onVerify, onDelete, onRate }) {
+            const [userRating, setUserRating] = useState(0);
+            const [userComment, setUserComment] = useState('');
+            const [hoverRating, setHoverRating] = useState(0);
+
+            const hasUserRated = location.ratings && location.ratings.some(r => r.userId === currentUser.id);
+
+            const handleSubmitRating = () => {
+                if (userRating > 0) {
+                    onRate(location._id, userRating, userComment);
+                    setUserRating(0);
+                    setUserComment('');
+                }
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+                        <div className="modal-header">
+                            <h3>{location.name}</h3>
+                            <button className="close-btn" onClick={onClose}>×</button>
+                        </div>
+                        
+                        <div className="location-meta">
+                            Coordinates: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                        </div>
+                        
+                        <div style={{ marginTop: '1rem' }}>
+                            <span className={`status-badge status-${location.status}`}>
+                                {location.status}
+                            </span>
+                        </div>
+                        
+                        <div className={`hazard-badge hazard-${HAZARD_LEVELS[location.hazardLevel].color}`} style={{ display: 'inline-block' }}>
+                            {HAZARD_LEVELS[location.hazardLevel].label} - {HAZARD_LEVELS[location.hazardLevel].desc}
+                        </div>
+                        
+                        {location.images && location.images.length > 0 && (
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <h4 style={{ marginBottom: '0.75rem', color: 'var(--text)' }}>Photos</h4>
+                                <div style={{ 
+                                    display: 'grid', 
+                                    gridTemplateColumns: location.images.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(150px, 1fr))', 
+                                    gap: '0.75rem',
+                                    maxHeight: '400px',
+                                    overflowY: 'auto'
+                                }}>
+                                    {location.images.map((image, index) => (
+                                        <img 
+                                            key={index}
+                                            src={`https://floof.wtf${image}`}
+                                            alt={`${location.name} - Photo ${index + 1}`}
+                                            style={{ 
+                                                width: '100%', 
+                                                height: location.images.length === 1 ? '300px' : '150px',
+                                                objectFit: 'cover', 
+                                                borderRadius: '8px',
+                                                border: '1px solid var(--border)',
+                                                cursor: 'pointer'
+                                            }}
+                                            onClick={() => window.open(`https://floof.wtf${image}`, '_blank')}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        <p style={{ marginTop: '1.5rem', color: 'var(--text)', lineHeight: 1.6 }}>
+                            {location.description}
+                        </p>
+
+                        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <button 
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                                    const isAndroid = /Android/.test(navigator.userAgent);
+                                    
+                                    if (isIOS) {
+                                        window.open(`maps://maps.apple.com/?daddr=${location.lat},${location.lng}&dirflg=d`, '_blank');
+                                    } else if (isAndroid) {
+                                        window.open(`geo:${location.lat},${location.lng}?q=${location.lat},${location.lng}(${encodeURIComponent(location.name)})`, '_blank');
+                                    } else {
+                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`, '_blank');
+                                    }
+                                }}
+                            >
+                                🧭 Get Directions
+                            </button>
+                            
+                            <button 
+                                className="btn"
+                                onClick={() => {
+                                    window.open(`https://www.google.com/maps/@${location.lat},${location.lng},15z`, '_blank');
+                                }}
+                            >
+                                🗺️ View on Map
+                            </button>
+                            
+                            <button 
+                                className="btn"
+                                onClick={() => {
+                                    const coords = `${location.lat}, ${location.lng}`;
+                                    navigator.clipboard.writeText(coords).then(() => {
+                                        alert('Coordinates copied to clipboard!');
+                                    });
+                                }}
+                            >
+                                📋 Copy Coordinates
+                            </button>
+                        </div>
+                        
+                        {currentUser.isModerator && location.status === 'pending' && (
+                            <div className="moderator-actions">
+                                <button className="btn btn-primary" onClick={() => onVerify(location._id)}>
+                                    Verify Location
+                                </button>
+                                <button className="btn btn-danger" onClick={() => onDelete(location._id)}>
+                                    Delete
+                                </button>
+                            </div>
+                        )}
+                        
+                        <div className="rating-section">
+                            <h4 style={{ marginBottom: '1rem', color: 'var(--text)' }}>Ratings & Reviews</h4>
+                            
+                            {location.avgRating > 0 && (
+                                <div className="rating-display">
+                                    <div className="stars">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <span key={star} className={`star ${star <= Math.round(parseFloat(location.avgRating)) ? 'filled' : ''}`}>
+                                                ★
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <span className="rating-count">
+                                        {location.avgRating} ({location.ratingCount} {location.ratingCount === 1 ? 'rating' : 'ratings'})
+                                    </span>
+                                </div>
+                            )}
+                            
+                            {!hasUserRated && location.status === 'verified' && (
+                                <div style={{ marginTop: '1.5rem' }}>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-dim)' }}>
+                                        Rate your visit
+                                    </label>
+                                    <div className="stars" style={{ marginBottom: '1rem' }}>
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <span 
+                                                key={star} 
+                                                className={`star ${star <= (hoverRating || userRating) ? 'filled' : ''}`}
+                                                onClick={() => setUserRating(star)}
+                                                onMouseEnter={() => setHoverRating(star)}
+                                                onMouseLeave={() => setHoverRating(0)}
+                                            >
+                                                ★
+                                            </span>
+                                        ))}
+                                    </div>
+                                    
+                                    <textarea 
+                                        placeholder="Share your experience (optional)"
+                                        value={userComment}
+                                        onChange={(e) => setUserComment(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            background: 'var(--bg)',
+                                            border: '1px solid var(--border)',
+                                            borderRadius: '4px',
+                                            color: 'var(--text)',
+                                            fontFamily: 'Work Sans, sans-serif',
+                                            fontSize: '0.9rem',
+                                            minHeight: '80px',
+                                            marginBottom: '0.75rem'
+                                        }}
+                                    ></textarea>
+                                    
+                                    <button 
+                                        className="btn btn-primary"
+                                        onClick={handleSubmitRating}
+                                        disabled={userRating === 0}
+                                    >
+                                        Submit Rating
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {location.ratings && location.ratings.filter(r => r.comment).length > 0 && (
+                                <div className="comments-section">
+                                    <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--text)' }}>
+                                        Comments
+                                    </h4>
+                                    {location.ratings.filter(r => r.comment).map((rating, index) => (
+                                        <div key={index} className="comment">
+                                            <div className="comment-header">
+                                                <span className="comment-author">{rating.username}</span>
+                                                <span className="comment-rating">
+                                                    {'★'.repeat(rating.rating)}
+                                                </span>
+                                            </div>
+                                            <div className="comment-text">{rating.comment}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function PeopleSidebar({ isOpen, users, currentUser, stats, onClose }) {
+            return (
+                <div className={`people-sidebar ${isOpen ? 'open' : ''}`}>
+                    <div className="sidebar-content">
+                        <div className="sidebar-header">Community</div>
+                        
+                        {stats && (
+                            <div className="stats-card">
+                                <div className="stat-row">
+                                    <span className="stat-label">Total Explorers</span>
+                                    <span className="stat-value">{stats.totalUsers}</span>
+                                </div>
+                                <div className="stat-row">
+                                    <span className="stat-label">Verified Locations</span>
+                                    <span className="stat-value">{stats.verifiedLocations}</span>
+                                </div>
+                                <div className="stat-row">
+                                    <span className="stat-label">Total Ratings</span>
+                                    <span className="stat-value">{stats.totalRatings}</span>
+                                </div>
+                                <div className="stat-row">
+                                    <span className="stat-label">Pending Review</span>
+                                    <span className="stat-value">{stats.pendingLocations}</span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <h3 style={{ fontSize: '1rem', color: 'var(--text)', marginBottom: '1rem' }}>
+                            Active Members ({users.length})
+                        </h3>
+                        
+                        <div className="people-list">
+                            {users.length === 0 ? (
+                                <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>
+                                    No users yet
+                                </p>
+                            ) : (
+                                users.map(user => (
+                                    <div key={user.id} className="person-card">
+                                        <div className="person-avatar">
+                                            {user.profilePicture ? (
+                                                <img src={`https://floof.wtf${user.profilePicture}`} alt={user.username} />
+                                            ) : (
+                                                <span style={{ fontSize: '1.5rem' }}>👤</span>
+                                            )}
+                                        </div>
+                                        <div className="person-info">
+                                            <div className="person-name">{user.username}</div>
+                                            <div className="person-meta">
+                                                {user.id === currentUser.id ? 'You' : 'Explorer'}
+                                            </div>
+                                            {user.isModerator && (
+                                                <div className="moderator-badge">Moderator</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function BottomNav({ activeTab, setActiveTab, setShowSidebar, setShowPeopleModal }) {
+            return (
+                <nav className="bottom-nav">
+                    <div className="bottom-nav-items">
+                        <div 
+                            className={`bottom-nav-item ${activeTab === 'map' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('map')}
+                        >
+                            <div className="bottom-nav-icon">🗺️</div>
+                            <div className="bottom-nav-label">Map</div>
+                        </div>
+                        
+                        <div 
+                            className={`bottom-nav-item ${activeTab === 'community' ? 'active' : ''}`}
+                            onClick={() => {
+                                setActiveTab('community');
+                                setShowSidebar(true);
+                            }}
+                        >
+                            <div className="bottom-nav-icon">📍</div>
+                            <div className="bottom-nav-label">Locations</div>
+                        </div>
+                        
+                        <div 
+                            className={`bottom-nav-item ${activeTab === 'people' ? 'active' : ''}`}
+                            onClick={() => {
+                                setActiveTab('people');
+                                setShowPeopleModal(true);
+                            }}
+                        >
+                            <div className="bottom-nav-icon">👥</div>
+                            <div className="bottom-nav-label">People</div>
+                        </div>
+                    </div>
+                </nav>
+            );
+        }
+
+        function PeopleModal({ users, currentUser, onClose }) {
+            const [allUsers, setAllUsers] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const loadUsers = async () => {
+                    try {
+                        const response = await fetch(`${API_URL}/users`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            setAllUsers(data);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load users:', error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                loadUsers();
+            }, []);
+
+            return (
+                <div className="community-modal" onClick={onClose}>
+                    <div className="community-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Community Members</h3>
+                            <button className="close-btn" onClick={onClose}>×</button>
+                        </div>
+
+                        {loading ? (
+                            <div className="loading">Loading users...</div>
+                        ) : (
+                            <>
+                                <p style={{ color: 'var(--text-dim)', marginBottom: '1rem' }}>
+                                    {allUsers.length} {allUsers.length === 1 ? 'explorer' : 'explorers'} in the community
+                                </p>
+                                
+                                <div className="people-grid">
+                                    {allUsers.map(user => (
+                                        <div key={user.id} className="person-card">
+                                            <div className="person-avatar">
+                                                {user.profilePicture ? (
+                                                    <img src={`https://floof.wtf${user.profilePicture}`} alt={user.username} />
+                                                ) : (
+                                                    <span style={{ fontSize: '1.5rem' }}>👤</span>
+                                                )}
+                                            </div>
+                                            <div className="person-info">
+                                                <div className="person-name">{user.username}</div>
+                                                <div className="person-meta">
+                                                    {user.id === currentUser.id ? 'You' : 'Explorer'}
+                                                </div>
+                                                {user.isModerator && (
+                                                    <div className="moderator-badge">Moderator</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
