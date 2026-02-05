@@ -42,7 +42,7 @@ function writeJSON(file, data) {
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, '/var/www/html/chatapp/public/uploads');
+        cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + '-' + file.originalname);
